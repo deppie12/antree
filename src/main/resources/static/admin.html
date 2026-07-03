@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ANTREE - Kelola Pengguna</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#004482",
+                        "surface": "#f9f9ff",
+                        "outline-variant": "#c1c6d3",
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-[#111c2d] font-['Inter']">
+
+    <header class="bg-white border-b border-outline-variant sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <span class="text-2xl font-bold text-primary font-['Plus_Jakarta_Sans']">ANTREE</span>
+            <button onclick="logout()" class="flex items-center gap-2 text-red-600 font-semibold hover:bg-red-50 px-4 py-2 rounded-lg transition-all">
+                <span class="material-symbols-outlined">logout</span> Keluar
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-10 min-h-screen">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-primary">Data Pendaftaran</h1>
+            <p class="text-gray-600">Daftar pengguna yang masuk melalui sistem pendaftaran.</p>
+        </div>
+
+        <div class="bg-white border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-outline-variant">
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Lengkap</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">NIK</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">WhatsApp</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="adminTableBody" class="divide-y divide-outline-variant">
+                    <tr>
+                        <td colspan="5" class="px-6 py-10 text-center text-gray-500 italic">Memuat data dari server...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden">
+            <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center">
+                <h3 class="font-bold text-lg text-primary">Edit Data Pendaftar</h3>
+                <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="editForm" class="p-6 space-y-4">
+                <input type="hidden" id="edit_id">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
+                    <input type="text" id="edit_nama" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">NIK</label>
+                    <input type="text" id="edit_nik" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="edit_email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">WhatsApp</label>
+                    <input type="text" id="edit_wa" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 text-gray-600 font-medium">Batal</button>
+                    <button type="submit" class="px-6 py-2 bg-primary text-white font-bold rounded hover:opacity-90">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-white border-t border-outline-variant py-8 mt-10">
+        <div class="max-w-7xl mx-auto px-6 text-center text-gray-500 text-sm">
+            © 2024 ANTREE - Solusi Antrean Rumah Sakit
+        </div>
+    </footer>
+
+    <script>
+        // ================= PROTEKSI HALAMAN =================
+        const isAdminLogin = sessionStorage.getItem("adminLogin");
+
+        if (!isAdminLogin) {
+            alert("Silakan login sebagai admin terlebih dahulu!");
+            window.location.href = "login.html"; // Diubah ke login.html sesuai file Anda
+        }
+
+        function logout() {
+            sessionStorage.removeItem("adminLogin");
+            window.location.href = "login.html";
+        }
+
+        // ================= LOGIKA DATA =================
+        const API_URL = 'http://localhost:9999/api/daftar';
+        let currentUsers = [];
+
+        async function loadData() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Gagal mengambil data');
+                
+                currentUsers = await response.json();
+                const tableBody = document.getElementById('adminTableBody');
+                tableBody.innerHTML = '';
+
+                if (currentUsers.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-10 text-center text-gray-500">Belum ada data pendaftar di database.</td></tr>';
+                    return;
+                }
+
+                currentUsers.forEach(user => {
+                    const userNama = user.nama || 'Tanpa Nama';
+                    const userNik = user.nik || '-';
+                    const userEmail = user.email || '-';
+                    const userWa = user.whatsapp || '-';
+                    const inisial = userNama.charAt(0).toUpperCase();
+
+                    const row = `
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-primary font-bold">${inisial}</div>
+                                    <span class="font-semibold text-gray-800">${userNama}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-gray-600">${userNik}</td>
+                            <td class="px-6 py-4 text-gray-600">${userEmail}</td>
+                            <td class="px-6 py-4 text-gray-600">${userWa}</td>
+                            <td class="px-6 py-4 text-right flex justify-end gap-2">
+                                <button onclick="openEditModal(${user.id})" class="text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-all">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <button onclick="deleteUser(${user.id})" class="text-red-600 hover:bg-red-50 p-2 rounded-full transition-all">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </td>
+                        </tr>`;
+                    tableBody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('adminTableBody').innerHTML = 
+                    '<tr><td colspan="5" class="px-6 py-10 text-center text-red-500 font-bold">Koneksi Gagal. Pastikan Backend Java dijalankan di Port 9999.</td></tr>';
+            }
+        }
+
+        function openEditModal(id) {
+            const user = currentUsers.find(u => u.id === id);
+            if (user) {
+                document.getElementById('edit_id').value = user.id;
+                document.getElementById('edit_nama').value = user.nama;
+                document.getElementById('edit_nik').value = user.nik;
+                document.getElementById('edit_email').value = user.email;
+                document.getElementById('edit_wa').value = user.whatsapp;
+                document.getElementById('editModal').classList.remove('hidden');
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        document.getElementById('editForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit_id').value;
+            const updatedData = {
+                nama: document.getElementById('edit_nama').value,
+                nik: document.getElementById('edit_nik').value,
+                email: document.getElementById('edit_email').value,
+                whatsapp: document.getElementById('edit_wa').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedData)
+                });
+
+                if (response.ok) {
+                    alert("Data berhasil diperbarui!");
+                    closeEditModal();
+                    loadData();
+                } else {
+                    alert("Gagal memperbarui data.");
+                }
+            } catch (error) {
+                alert("Kesalahan koneksi ke server.");
+            }
+        };
+
+        async function deleteUser(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus pendaftar ini?')) {
+                try {
+                    const response = await fetch(API_URL + '/' + id, { 
+                        method: 'DELETE' 
+                    });
+                    if (response.ok) {
+                        alert("Data berhasil dihapus!");
+                        loadData();
+                    } else {
+                        alert("Gagal menghapus data.");
+                    }
+                } catch (error) {
+                    alert("Kesalahan koneksi ke server.");
+                }
+            }
+        }
+
+        window.onload = loadData;
+    </script> 
+</body>
+</html>

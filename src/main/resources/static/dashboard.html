@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html class="light" lang="id">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ANTREE - Pendaftaran & Antrean</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet"/>
+
+    <script id="tailwind-config">
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+                "primary": "#004482",
+                "on-primary": "#ffffff",
+                "surface": "#f9f9ff",
+                "outline-variant": "#c1c6d3",
+                "primary-fixed": "#d5e3ff",
+                "surface-container-low": "#f0f3ff",
+                "primary-container": "#005cab",
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        body { background-color: #f9f9ff; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="font-sans text-slate-900">
+
+    <nav class="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+        <div class="flex justify-between items-center w-full px-10 py-4 max-w-7xl mx-auto">
+            <div class="text-2xl font-bold text-primary tracking-tighter">ANTREE</div>
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium">
+                <a class="text-primary border-b-2 border-primary pb-1" href="#">Layanan</a>
+                <a class="text-gray-500 hover:text-primary" href="#">Jadwal Dokter</a>
+                <a class="text-gray-500 hover:text-primary" href="#">Bantuan</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-24 pb-12 max-w-7xl mx-auto px-10 min-h-screen">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <aside class="lg:col-span-5 flex flex-col gap-6 sticky top-24">
+                <div id="ticket-card" class="bg-primary p-8 rounded-3xl text-white shadow-xl relative overflow-hidden transition-all opacity-50 scale-95">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+                    <div class="relative z-10">
+                        <p class="text-xs uppercase tracking-widest opacity-80 mb-1 font-bold">Nomor Antrean Anda</p>
+                        <h2 class="text-7xl font-black mb-8 queue-number tracking-tighter">---</h2>
+                        
+                        <div class="space-y-4 border-t border-white/20 pt-6 text-sm">
+                            <div class="flex justify-between"><span class="opacity-70">Nama Pasien</span> <span id="patient-name" class="font-bold">-</span></div>
+                            <div class="flex justify-between"><span class="opacity-70">No. Rekam Medis</span> <span id="rm-number" class="font-bold">-</span></div>
+                            <div class="flex justify-between"><span class="opacity-70">Poliklinik</span> <span id="poli-name" class="font-bold">-</span></div>
+                            <div class="flex justify-between"><span class="opacity-70">Dokter Spesialis</span> <span id="doctor-name" class="font-bold">-</span></div>
+                            <div class="flex justify-between"><span class="opacity-70">Tanggal Kunjungan</span> <span id="visit-date" class="font-bold">-</span></div>
+                            <div class="flex justify-between items-center bg-white/10 p-3 rounded-lg mt-2">
+                                <span class="opacity-70">Estimasi Dilayani</span> 
+                                <span id="estimate-time" class="font-bold text-green-300 text-lg">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="qr-section bg-white p-6 border border-gray-200 rounded-2xl flex flex-col items-center shadow-sm">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=WAITING" id="qr-image" alt="QR Code" class="w-32 h-32 opacity-30">
+                    <p class="text-xs text-gray-400 mt-3">QR akan muncul setelah mendaftar</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <button id="download-btn" class="flex items-center justify-center gap-2 bg-white border-2 border-primary text-primary font-bold py-3 rounded-xl hover:bg-gray-50 disabled:opacity-50" disabled>
+                        <span class="material-symbols-outlined text-lg">download</span> Unduh
+                    </button>
+                    <button id="share-btn" class="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 disabled:opacity-50" disabled>
+                        <span class="material-symbols-outlined text-lg">share</span> Bagikan
+                    </button>
+                </div>
+            </aside>
+
+            <section class="lg:col-span-7">
+                <div class="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+                    <h1 class="text-2xl font-bold text-primary mb-6">Pendaftaran Online</h1>
+
+                    <div class="mb-8 p-4 bg-blue-50 rounded-xl flex items-center justify-between border border-blue-100">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-full bg-blue-200 flex items-center justify-center overflow-hidden border-2 border-white">
+                                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHRMTmOBDDlcwitq69XSQw8Ij5QL1YyQSIoZMk_CQsm81S4Ga0bRMwNfwvYt0hwa9UEsiXe8RAx3D3VXAa8lYVs-Ff72aZMr8DUvfQGlBVOldl_SU6u6z_jfJUk2h88e1KM8ciTjDOOtQyO9QISn1P2R9nuRsizslG8YjVf2mzbF2eSWaEgZF54W8-bOlcmFhsS5cfOLm-GUkE-B8dlTRCNZ-wTVRn4NauoOzm02WQfUOTZNfdm05ObsTWJmPulzhv5Fx9ESkDecV-" alt="Profile" class="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Profil Pasien Aktif</p>
+                                <p class="font-bold text-gray-800" id="form-patient-name">Budi Santoso</p>
+                                <p class="text-xs text-gray-500">No. RM: 12-34-56</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="registration-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-gray-700">Pilih Poliklinik</label>
+                                <select id="input-poli" class="w-full border-gray-300 rounded-xl p-3 focus:ring-primary focus:border-primary" required>
+                                    <option value="">Pilih Poliklinik</option>
+                                    <option value="Poli Umum">Poli Umum</option>
+                                    <option value="Poli Gigi & Mulut">Poli Gigi & Mulut</option>
+                                    <option value="Poli Anak">Poli Anak</option>
+                                    <option value="Poli Penyakit Dalam">Poli Penyakit Dalam</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-bold text-gray-700">Pilih Dokter</label>
+                                <select id="input-doctor" class="w-full border-gray-300 rounded-xl p-3 focus:ring-primary focus:border-primary" required>
+                                    <option value="">Pilih Dokter</option>
+                                    <option value="dr. Andi Wijaya, Sp.PD">dr. Andi Wijaya, Sp.PD</option>
+                                    <option value="dr. Siti Aminah, Sp.A">dr. Siti Aminah, Sp.A</option>
+                                    <option value="dr. Kevin Pratama, Sp.G">dr. Kevin Pratama, Sp.G</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <label class="text-sm font-bold text-gray-700">Jadwal Kunjungan</label>
+                            <div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide" id="date-options">
+                                <button type="button" data-date="14 Okt 2024" class="date-btn flex-shrink-0 flex flex-col items-center p-3 min-w-[94px] border-2 border-primary bg-blue-50 rounded-xl">
+                                    <span class="text-xs text-gray-500">Senin</span>
+                                    <span class="font-bold">14 Okt</span>
+                                </button>
+                                <button type="button" data-date="15 Okt 2024" class="date-btn flex-shrink-0 flex flex-col items-center p-3 min-w-[94px] border border-gray-200 bg-white rounded-xl">
+                                    <span class="text-xs text-gray-500">Selasa</span>
+                                    <span class="font-bold">15 Okt</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="btn-daftar" class="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-900 transition-all shadow-lg flex items-center justify-center gap-2">
+                            Daftar Antrean Sekarang
+                            <span class="material-symbols-outlined">arrow_forward</span>
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // --- PERUBAHAN: Mengambil data user yang disimpan dari localStorage ---
+        const sessionUser = localStorage.getItem('user_aktif');
+        let activePatient = {
+            name: "Budi Santoso", // Default fallback jika session kosong
+            rm: "12-34-56"
+        };
+
+        if (sessionUser) {
+            const parsedUser = JSON.parse(sessionUser);
+            // Menyesuaikan properti 'nama' atau 'name' dari data pendaftaran
+            if (parsedUser.nama) {
+                activePatient.name = parsedUser.nama;
+            } else if (parsedUser.name) {
+                activePatient.name = parsedUser.name;
+            }
+        }
+
+        // Jalankan saat dokumen selesai dimuat untuk mengubah teks "Budi Santoso" di HTML profil aktif
+        document.addEventListener("DOMContentLoaded", function() {
+            const profileNameElement = document.getElementById("form-patient-name");
+            if (profileNameElement) {
+                profileNameElement.innerText = activePatient.name;
+            }
+        });
+
+        let selectedDate = "14 Okt 2024";
+
+        document.querySelectorAll('.date-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.date-btn').forEach(b => {
+                    b.classList.remove('border-primary', 'bg-blue-50');
+                    b.classList.add('border-gray-200', 'bg-white');
+                });
+                this.classList.add('border-primary', 'bg-blue-50');
+                selectedDate = this.dataset.date;
+            });
+        });
+
+        const form = document.getElementById('registration-form');
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const poli = document.getElementById('input-poli').value;
+            const doctor = document.getElementById('input-doctor').value;
+
+            // Membangun objek data sesuai Antrean.java menggunakan nama dinamis
+            const dataUntukSimpan = {
+                namaPasien: activePatient.name, // <-- Sekarang otomatis menggunakan nama user registrasi
+                poli: poli,
+                dokter: doctor,
+                tanggal: selectedDate
+            };
+
+            const btn = document.getElementById('btn-daftar');
+            btn.innerHTML = `<span class="animate-spin material-symbols-outlined">sync</span> Memproses...`;
+
+            // MENGIRIM DATA KE DATABASE H2 MELALUI CONTROLLER
+            fetch('/api/antrean/daftar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataUntukSimpan)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update UI menggunakan ID yang dihasilkan database secara otomatis
+                document.querySelector(".queue-number").innerText = "A-00" + data.id;
+                document.querySelector("#patient-name").innerText = data.namaPasien;
+                document.querySelector("#rm-number").innerText = activePatient.rm;
+                document.querySelector("#poli-name").innerText = data.poli;
+                document.querySelector("#doctor-name").innerText = data.dokter;
+                document.querySelector("#visit-date").innerText = data.tanggal;
+                document.querySelector("#estimate-time").innerText = "09:30 WIB";
+
+                const ticketCard = document.getElementById('ticket-card');
+                ticketCard.classList.remove('opacity-50', 'scale-95');
+                ticketCard.classList.add('scale-100');
+                
+                const qrImg = document.getElementById('qr-image');
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ANTREE-${data.id}-${data.namaPasien}`;
+                qrImg.classList.remove('opacity-30');
+
+                document.getElementById('download-btn').disabled = false;
+                document.getElementById('share-btn').disabled = false;
+
+                btn.innerHTML = `Daftar Antrean Sekarang <span class="material-symbols-outlined">arrow_forward</span>`;
+                alert("Pendaftaran Berhasil & Tersimpan di Database! Nomor: A-00" + data.id);
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Gagal menyimpan data ke database.");
+                btn.innerHTML = `Daftar Antrean Sekarang <span class="material-symbols-outlined">arrow_forward</span>`;
+            });
+        });
+
+        document.getElementById("download-btn").addEventListener("click", () => {
+            const content = `TIKET ANTREAN\nNo Antrean: ${document.querySelector(".queue-number").innerText}\nPasien: ${activePatient.name}\nPoli: ${document.querySelector("#poli-name").innerText}`;
+            const blob = new Blob([content], { type: "text/plain" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Tiket-Antrean.txt`;
+            link.click();
+        });
+
+        document.getElementById("share-btn").addEventListener("click", async () => {
+            const shareText = `Antrean ${document.querySelector(".queue-number").innerText}\nPasien: ${activePatient.name}`;
+            if (navigator.share) {
+                try { await navigator.share({ title: "Tiket Antrean", text: shareText }); } catch (err) {}
+            } else {
+                navigator.clipboard.writeText(shareText);
+                alert("Link tiket disalin!");
+            }
+        });
+    </script>
+</body>
+</html>
