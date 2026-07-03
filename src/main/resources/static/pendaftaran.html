@@ -305,7 +305,7 @@
             btn.disabled = true;
             btn.innerHTML = `Memproses Pendaftaran...`;
 
-            fetch('http://localhost:9999/api/daftar', {
+            fetch('https://antree-production.up.railway.app/api/antrian', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

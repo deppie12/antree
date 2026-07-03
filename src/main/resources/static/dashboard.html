@@ -205,7 +205,7 @@
             btn.innerHTML = `<span class="animate-spin material-symbols-outlined">sync</span> Memproses...`;
 
             // MENGIRIM DATA KE DATABASE H2 MELALUI CONTROLLER
-            fetch('/api/antrean/daftar', {
+            fetch('https://antree-production.up.railway.app/api/antrian', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dataUntukSimpan)
