@@ -205,10 +205,17 @@
             btn.innerHTML = `<span class="animate-spin material-symbols-outlined">sync</span> Memproses...`;
 
             // MENGIRIM DATA KE DATABASE H2 MELALUI CONTROLLER
-            fetch('https://antree-production.up.railway.app/api/antrian', {
+            fetch('https://antree-production.up.railway.app/api/antrean/daftar', { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dataUntukSimpan)
+            })
+            .then(response => {
+                // PERUBAHAN PENTING: Tambahkan pengecekan status
+                if (!response.ok) {
+                    throw new Error('Server error dengan status: ' + response.status);
+                }
+                return response.json();
             })
             .then(response => response.json())
             .then(data => {
