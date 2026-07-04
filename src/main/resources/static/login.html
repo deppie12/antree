@@ -189,10 +189,11 @@
             const usernameInput = document.getElementById('email').value;
             const passwordInput = document.getElementById('password').value;
 
-        const dataLogin = {
-            username: usernameInput, // Backend kita mencari 'username'
-            password: passwordInput
-        };
+        // Ganti bagian ini di dalam script login.html
+            const dataLogin = {
+                email: document.getElementById('email').value, 
+                password: document.getElementById('password').value
+            };
 
             const btn = document.getElementById('btnMasuk'); // ID tombol dari HTML kamu
                 btn.innerHTML = 'Mengecek...';
