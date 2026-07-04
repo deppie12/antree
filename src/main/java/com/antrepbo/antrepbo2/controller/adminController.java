@@ -4,6 +4,7 @@ import com.antrepbo.antrepbo2.model.Admin;
 import com.antrepbo.antrepbo2.service.AdminService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,10 +51,16 @@ public class adminController {
         adminService.deleteAdmin(id); // Diperbaiki: sesuaikan dengan Service
     }
 
-    // ================= LOGIN ADMIN =================
+   // ================= LOGIN ADMIN =================
     @PostMapping("/login")
-    public Admin loginAdmin(@RequestBody Admin loginData) {
-        // Diperbaiki: panggil method login di service
-        return adminService.loginAdmin(loginData.getEmail(), loginData.getPassword());
+    public ResponseEntity<?> loginAdmin(@RequestBody Admin loginData) {
+        Admin admin = adminService.loginAdmin(loginData.getEmail(), loginData.getPassword());
+        
+        if (admin != null) {
+            return ResponseEntity.ok(admin); // Berhasil
+        } else {
+            // Mengirim status 401 agar masuk ke blok .catch() di JavaScript
+            return ResponseEntity.status(401).body("Email atau Password salah"); 
+        }
     }
 }
