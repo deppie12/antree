@@ -98,138 +98,36 @@
         </div>
     </footer>
 
-    <script>
-        // ================= PROTEKSI HALAMAN =================
-        const isAdminLogin = sessionStorage.getItem("adminLogin");
-
-        if (!isAdminLogin) {
+    <script>   
+   // Fungsi untuk cek login
+    function checkAuth() {
+        const adminData = localStorage.getItem('admin_aktif');
+        if (!adminData) {
             alert("Silakan login sebagai admin terlebih dahulu!");
-            window.location.href = "login.html"; // Diubah ke login.html sesuai file Anda
-        }
-
-        function logout() {
-            sessionStorage.removeItem("adminLogin");
             window.location.href = "login.html";
         }
+    }
+    // Panggil pengecekan segera
+    checkAuth();
 
-        // ================= LOGIKA DATA =================
-        const API_URL = 'https://antree-production.up.railway.app/api/admin';
-        let currentUsers = [];
+    function logout() {
+        localStorage.removeItem("admin_aktif");
+        sessionStorage.removeItem("adminLogin"); // Pembersihan tambahan
+        window.location.href = "login.html";
+    }
+    // ================= LOGIKA DATA =================
+    const API_URL = 'https://antree-production.up.railway.app/api/admin';
+    let currentUsers = [];
 
-        async function loadData() {
-            try {
-                const response = await fetch(API_URL);
-                if (!response.ok) throw new Error('Gagal mengambil data');
-                
-                currentUsers = await response.json();
-                const tableBody = document.getElementById('adminTableBody');
-                tableBody.innerHTML = '';
+    async function loadData() {
+        // ... kode loadData kamu (sudah benar)
+    }
 
-                if (currentUsers.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-10 text-center text-gray-500">Belum ada data pendaftar di database.</td></tr>';
-                    return;
-                }
-
-                currentUsers.forEach(user => {
-                    const userNama = user.nama || 'Tanpa Nama';
-                    const userNik = user.nik || '-';
-                    const userEmail = user.email || '-';
-                    const userWa = user.whatsapp || '-';
-                    const inisial = userNama.charAt(0).toUpperCase();
-
-                    const row = `
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-primary font-bold">${inisial}</div>
-                                    <span class="font-semibold text-gray-800">${userNama}</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 text-gray-600">${userNik}</td>
-                            <td class="px-6 py-4 text-gray-600">${userEmail}</td>
-                            <td class="px-6 py-4 text-gray-600">${userWa}</td>
-                            <td class="px-6 py-4 text-right flex justify-end gap-2">
-                                <button onclick="openEditModal(${user.id})" class="text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-all">
-                                    <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button onclick="deleteUser(${user.id})" class="text-red-600 hover:bg-red-50 p-2 rounded-full transition-all">
-                                    <span class="material-symbols-outlined">delete</span>
-                                </button>
-                            </td>
-                        </tr>`;
-                    tableBody.innerHTML += row;
-                });
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('adminTableBody').innerHTML = 
-                    '<tr><td colspan="5" class="px-6 py-10 text-center text-red-500 font-bold">Koneksi Gagal. Pastikan Backend Java dijalankan di Port 9999.</td></tr>';
-            }
-        }
-
-        function openEditModal(id) {
-            const user = currentUsers.find(u => u.id === id);
-            if (user) {
-                document.getElementById('edit_id').value = user.id;
-                document.getElementById('edit_nama').value = user.nama;
-                document.getElementById('edit_nik').value = user.nik;
-                document.getElementById('edit_email').value = user.email;
-                document.getElementById('edit_wa').value = user.whatsapp;
-                document.getElementById('editModal').classList.remove('hidden');
-            }
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.add('hidden');
-        }
-
-        document.getElementById('editForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit_id').value;
-            const updatedData = {
-                nama: document.getElementById('edit_nama').value,
-                nik: document.getElementById('edit_nik').value,
-                email: document.getElementById('edit_email').value,
-                whatsapp: document.getElementById('edit_wa').value
-            };
-
-            try {
-                const response = await fetch(`${API_URL}/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updatedData)
-                });
-
-                if (response.ok) {
-                    alert("Data berhasil diperbarui!");
-                    closeEditModal();
-                    loadData();
-                } else {
-                    alert("Gagal memperbarui data.");
-                }
-            } catch (error) {
-                alert("Kesalahan koneksi ke server.");
-            }
-        };
-
-        async function deleteUser(id) {
-            if (confirm('Apakah Anda yakin ingin menghapus pendaftar ini?')) {
-                try {
-                    const response = await fetch(API_URL + '/' + id, { 
-                        method: 'DELETE' 
-                    });
-                    if (response.ok) {
-                        alert("Data berhasil dihapus!");
-                        loadData();
-                    } else {
-                        alert("Gagal menghapus data.");
-                    }
-                } catch (error) {
-                    alert("Kesalahan koneksi ke server.");
-                }
-            }
-        }
-
-        window.onload = loadData;
+    // Jalankan semua saat halaman siap
+    window.onload = () => {
+        checkAuth();
+        loadData();
+    };
     </script> 
 </body>
 </html>
