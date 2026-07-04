@@ -99,27 +99,26 @@
     </footer>
 
     <script>   
-        // Fungsi untuk cek login
-            function checkAuth() {
-                const adminData = localStorage.getItem('admin_aktif');
-                if (!adminData) {
-                    alert("Silakan login sebagai admin terlebih dahulu!");
-                    window.location.href = "login.html";
-                }
-            }
-
-        // Fungsi logout
-            function logout() {
-                localStorage.removeItem("admin_aktif");
-                sessionStorage.removeItem("adminLogin");
+        // ================= OTENTIKASI =================
+        function checkAuth() {
+            const adminData = localStorage.getItem('admin_aktif');
+            if (!adminData) {
+                alert("Silakan login sebagai admin terlebih dahulu!");
                 window.location.href = "login.html";
             }
+        }
+
+        function logout() {
+            localStorage.removeItem("admin_aktif");
+            sessionStorage.removeItem("adminLogin");
+            window.location.href = "login.html";
+        }
 
         // ================= LOGIKA DATA =================
-            const API_URL = 'https://antree-production.up.railway.app/api/admin';
-            let currentUsers = [];
+        const API_URL = 'https://antree-production.up.railway.app/api/daftar';
+        let currentUsers = [];
 
-            async function loadData() {
+        async function loadData() {
             try {
                 const response = await fetch(API_URL);
                 if (!response.ok) throw new Error('Gagal mengambil data');
@@ -138,6 +137,8 @@
                     const userNik = user.nik || '-';
                     const userEmail = user.email || '-';
                     const userWa = user.whatsapp || '-';
+                    
+                    // PERBAIKAN: Menambahkan variabel inisial yang sebelumnya hilang
                     const inisial = userNama.charAt(0).toUpperCase();
 
                     const row = `
@@ -165,12 +166,96 @@
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('adminTableBody').innerHTML = 
-                    '<tr><td colspan="5" class="px-6 py-10 text-center text-red-500 font-bold">Koneksi Gagal.</td></tr>';
+                    '<tr><td colspan="5" class="px-6 py-10 text-center text-red-500 font-bold">Koneksi Gagal. Cek URL API atau Server.</td></tr>';
             }
         }
 
-        // Fungsi lain (Edit, Delete, Modal) tetap seperti yang sebelumnya kamu punya...
-        // [Pastikan fungsi openEditModal, closeEditModal, editForm, deleteUser tetap ada di sini]
+        // ================= FUNGSI CRUD =================
+
+        // 1. Fungsi Membuka Modal Edit
+        function openEditModal(id) {
+            // Cari data user berdasarkan ID dari array currentUsers
+            const user = currentUsers.find(u => u.id === id);
+            if (!user) return;
+
+            // Isi form di modal dengan data user
+            document.getElementById('edit_id').value = user.id;
+            document.getElementById('edit_nama').value = user.nama || '';
+            document.getElementById('edit_nik').value = user.nik || '';
+            document.getElementById('edit_email').value = user.email || '';
+            document.getElementById('edit_wa').value = user.whatsapp || '';
+
+            // Tampilkan modal
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        // 2. Fungsi Menutup Modal Edit
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+            document.getElementById('editForm').reset(); // Bersihkan form
+        }
+
+        // 3. Fungsi Menyimpan Perubahan (Submit Edit)
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Mencegah halaman refresh
+            
+            const id = document.getElementById('edit_id').value;
+            
+            // Siapkan data yang sudah diedit
+            const updatedData = {
+                nama: document.getElementById('edit_nama').value,
+                nik: document.getElementById('edit_nik').value,
+                email: document.getElementById('edit_email').value,
+                whatsapp: document.getElementById('edit_wa').value
+            };
+
+            try {
+                // Kirim request UPDATE (PUT) ke backend
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT', // Pastikan backend kamu pakai @PutMapping untuk update
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedData)
+                });
+
+                if (response.ok) {
+                    alert('Data pendaftar berhasil diperbarui!');
+                    closeEditModal();
+                    loadData(); // Refresh tabel
+                } else {
+                    alert('Gagal memperbarui data. Cek console untuk detail.');
+                }
+            } catch (error) {
+                console.error('Error saat update:', error);
+                alert('Terjadi kesalahan koneksi saat memperbarui data.');
+            }
+        });
+
+        // 4. Fungsi Menghapus Data
+        async function deleteUser(id) {
+            // Tampilkan dialog konfirmasi
+            const konfirmasi = confirm('Apakah Anda yakin ingin menghapus data pendaftar ini?');
+            
+            if (konfirmasi) {
+                try {
+                    // Kirim request DELETE ke backend
+                    const response = await fetch(`${API_URL}/${id}`, {
+                        method: 'DELETE' // Pastikan backend kamu pakai @DeleteMapping
+                    });
+
+                    if (response.ok) {
+                        alert('Data pendaftar berhasil dihapus!');
+                        loadData(); // Refresh tabel
+                    } else {
+                        alert('Gagal menghapus data.');
+                    }
+                } catch (error) {
+                    console.error('Error saat delete:', error);
+                    alert('Terjadi kesalahan koneksi saat menghapus data.');
+                }
+            }
+        }
 
         // Jalankan semua saat halaman siap
         window.onload = () => {
