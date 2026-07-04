@@ -307,39 +307,29 @@
 
             fetch('https://antree-production.up.railway.app/api/daftar', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             })
-            // Mengubah .then(response => response.text()) menjadi deteksi JSON/Text agar data objek nama bisa diambil
             .then(response => {
-                const contentType = response.headers.get("content-type");
-                if (contentType && contentType.includes("application/json")) {
-                    return response.json();
-                } else {
-                    return response.text().then(text => ({ isText: true, message: text }));
+            // 1. Cek apakah server memberikan respon sukses (200-299)
+                if (!response.ok) {
+                    throw new Error('Gagal: Server merespon dengan status ' + response.status);
                 }
+                return response.json(); // Anggap backend selalu kirim JSON yang konsisten
             })
             .then(data => {
-                if (data.isText) {
-                    alert(data.message);
-                    // Jika backend hanya mengirim teks biasa, kita simpan minimal properti nama dari input form sebelumnya
-                    localStorage.setItem('user_aktif', JSON.stringify({ nama: formData.nama }));
-                } else {
-                    alert("Pendaftaran Berhasil!");
-                    // Jika backend mengirimkan objek User utuh dari database H2, kita simpan objek tersebut
-                    localStorage.setItem('user_aktif', JSON.stringify(data));
-                }
-                // Diarahkan ke file antrean (dashboard.html)
+                alert("Pendaftaran Berhasil!");
+                localStorage.setItem('user_aktif', JSON.stringify(data));
                 window.location.href = 'dashboard.html';
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('Terjadi kesalahan koneksi ke server.');
+                // 2. Sekarang alert ini akan muncul dengan benar jika terjadi 404 atau server error
+                alert('Terjadi kesalahan: ' + error.message);
                 btn.disabled = false;
                 btn.innerHTML = 'Daftar Diri';
             });
+            // Mengubah .then(response => response.text()) menjadi deteksi JSON/Text agar data objek nama bisa diambil
         }); 
     </script>
 </body>
