@@ -217,7 +217,7 @@
                 }
                 return response.json();
             })
-            .then(response => response.json())
+            
             .then(data => {
                 // Update UI menggunakan ID yang dihasilkan database secara otomatis
                 document.querySelector(".queue-number").innerText = "A-00" + data.id;
