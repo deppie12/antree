@@ -192,7 +192,7 @@
             btn.innerHTML = 'Mengecek...';
             btn.disabled = true;
 
-            // 1. Coba login Admin
+            // 1. Coba login ke API Admin
             fetch('https://antree-production.up.railway.app/api/admin/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -220,7 +220,11 @@
                     window.location.href = 'admin.html'; 
                 } else {
                     alert('Login User Berhasil!');
-                    // Menyimpan session user agar bisa dibaca di dashboard
+                    
+                    // console.log untuk mengecek struktur object dari database pendaftaran kamu
+                    console.log("Data User dari DB:", result.data); 
+                    
+                    // Menyimpan data respons (termasuk nama dari DB) ke localStorage
                     localStorage.setItem('user_aktif', JSON.stringify(result.data));
                     window.location.href = 'dashboard.html'; 
                 }
