@@ -150,34 +150,138 @@
     </main>
 
     <script>
-     <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // 1. Ambil data dari localStorage
         const sessionUser = localStorage.getItem('user_aktif');
-        
+        let activePatient = {
+            name: "Budi Santoso",
+            rm: "12-34-56"
+        };
+
         if (sessionUser) {
-            const user = JSON.parse(sessionUser);
-            
-            // 2. Ambil nama (Cek properti 'nama' atau 'name' tergantung dari API Anda)
-            const namaUser = user.nama || user.name || "User";
-            
-            // 3. Tampilkan ke elemen HTML
+            const parsedUser = JSON.parse(sessionUser);
+            if (parsedUser.nama) {
+                activePatient.name = parsedUser.nama;
+            } else if (parsedUser.name) {
+                activePatient.name = parsedUser.name;
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", function() {
             const profileNameElement = document.getElementById("form-patient-name");
             if (profileNameElement) {
-                profileNameElement.innerText = namaUser;
+                profileNameElement.innerText = activePatient.name;
             }
+        });
 
-            // Simpan ke variabel global jika dibutuhkan untuk proses pendaftaran
-            window.activePatient = {
-                name: namaUser,
-                rm: user.rm || "Belum ada RM" // Pastikan API juga mengirimkan nomor RM
+        let selectedDate = "14 Okt 2024";
+
+        document.querySelectorAll('.date-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.date-btn').forEach(b => {
+                    b.classList.remove('border-primary', 'bg-blue-50');
+                    b.classList.add('border-gray-200', 'bg-white');
+                });
+                this.classList.add('border-primary', 'bg-blue-50');
+                selectedDate = this.dataset.date;
+            });
+        });
+
+        const form = document.getElementById('registration-form');
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const poli = document.getElementById('input-poli').value;
+            const doctor = document.getElementById('input-doctor').value;
+
+            const dataUntukSimpan = {
+                namaPasien: activePatient.name,
+                poli: poli,
+                dokter: doctor,
+                tanggal: selectedDate
             };
-        } else {
-            // Jika tidak ada sesi, tendang kembali ke login
-            window.location.href = 'login.html';
-        }
-    });
-</script>
+
+            const btn = document.getElementById('btn-daftar');
+            btn.innerHTML = `<span class="animate-spin material-symbols-outlined">sync</span> Memproses...`;
+
+            fetch('https://antree-production.up.railway.app/api/antrean/daftar', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataUntukSimpan)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Server error dengan status: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.querySelector(".queue-number").innerText = "A-00" + data.id;
+                document.querySelector("#patient-name").innerText = data.namaPasien;
+                document.querySelector("#rm-number").innerText = activePatient.rm;
+                document.querySelector("#poli-name").innerText = data.poli;
+                document.querySelector("#doctor-name").innerText = data.dokter;
+                document.querySelector("#visit-date").innerText = data.tanggal;
+                document.querySelector("#estimate-time").innerText = "09:30 WIB";
+
+                const ticketCard = document.getElementById('ticket-card');
+                ticketCard.classList.remove('opacity-50', 'scale-95');
+                ticketCard.classList.add('scale-100');
+            
+                const qrImg = document.getElementById('qr-image');
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ANTREE-${data.id}-${data.namaPasien}`;
+                qrImg.classList.remove('opacity-30');
+
+                document.getElementById('download-btn').disabled = false;
+                document.getElementById('share-btn').disabled = false;
+
+                btn.innerHTML = `Daftar Antrean Sekarang <span class="material-symbols-outlined">arrow_forward</span>`;
+                alert("Pendaftaran Berhasil & Tersimpan di Database! Nomor: A-00" + data.id);
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Gagal menyimpan data ke database.");
+                btn.innerHTML = `Daftar Antrean Sekarang <span class="material-symbols-outlined">arrow_forward</span>`;
+            });
+        });
+
+        document.getElementById("download-btn").addEventListener("click", () => {
+            const noAntrean = document.querySelector(".queue-number").innerText;
+            const namaPasien = document.querySelector("#patient-name").innerText;
+            const poli = document.querySelector("#poli-name").innerText;
+            const dokter = document.querySelector("#doctor-name").innerText;
+            const tgl = document.querySelector("#visit-date").innerText;
+
+            const container = document.createElement("div");
+            container.style.width = "400px";
+            container.style.padding = "20px";
+            container.style.fontFamily = "Arial, sans-serif";
+            container.style.backgroundColor = "#ffffff";
+
+            container.innerHTML = `
+                <div style="border: 2px solid #004482; padding: 20px; border-radius: 10px;">
+                    <h2 style="text-align: center; color: #004482;">ANTREE</h2>
+                    <hr style="border: 1px dashed #ccc;">
+                    <p style="text-align: center; font-size: 14px;">Nomor Antrean Anda</p>
+                    <h1 style="text-align: center; font-size: 40px; color: #004482; margin: 10px 0;">${noAntrean}</h1>
+                    <table style="width: 100%; font-size: 12px; margin-top: 20px; border-collapse: collapse;">
+                        <tr><td style="padding: 5px; color: #666;">Pasien</td><td style="font-weight:bold;">: ${namaPasien}</td></tr>
+                        <tr><td style="padding: 5px; color: #666;">Poli</td><td style="font-weight:bold;">: ${poli}</td></tr>
+                        <tr><td style="padding: 5px; color: #666;">Dokter</td><td style="font-weight:bold;">: ${dokter}</td></tr>
+                        <tr><td style="padding: 5px; color: #666;">Tanggal</td><td style="font-weight:bold;">: ${tgl}</td></tr>
+                    </table>
+                    <p style="text-align: center; margin-top: 20px; font-size: 10px; color: #999;">Tunjukkan tiket ini di loket</p>
+                </div>
+            `;
+
+            const opt = {
+                margin: 5,
+                filename: `Tiket-${noAntrean}.pdf`,
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 2, logging: false },
+                jsPDF: { unit: 'mm', format: 'a6', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(container).save();
+        });
     </script>
 </body>
 </html>
