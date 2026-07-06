@@ -39,7 +39,6 @@
             <div class="text-2xl font-bold text-primary tracking-tighter">ANTREE</div>
             <div class="hidden md:flex items-center gap-8 text-sm font-medium">
                 <a class="text-primary border-b-2 border-primary pb-1" href="#">Layanan</a>
-                <!-- MENGGANTI JADWAL DOKTER MENJADI RIWAYAT KUNJUNGAN DENGAN ID POINTER -->
                 <a class="text-gray-500 hover:text-primary cursor-pointer" id="nav-riwayat">Riwayat Kunjungan</a>
                 <a class="text-gray-500 hover:text-primary" href="#">Bantuan</a>
             </div>
@@ -151,7 +150,7 @@
 
     <!-- POP-UP MODAL KECIL UNTUK RIWAYAT KUNJUNGAN -->
     <div id="modal-riwayat" class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center hidden p-4">
-        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative animate-in fade-in zoom-in-95 duration-200">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
             <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
                 <span class="material-symbols-outlined">close</span>
             </button>
@@ -179,55 +178,32 @@
     </div>
 
     <script>
-        // === PROSES DETEKSI NAMA USER (SUPER SAKTI & COMPATIBLE) ===
+        // === PROSES DETEKSI NAMA USER ===
         const sessionUser = localStorage.getItem('user_aktif') || localStorage.getItem('user');
-        let activePatient = {
-            name: "Budi Santoso", 
-            rm: "12-34-56"
-        };
+        let activePatient = { name: "Budi Santoso", rm: "12-34-56" };
 
         if (sessionUser) {
             try {
                 const parsedUser = JSON.parse(sessionUser);
-                
-                // Mendeteksi semua kemungkinan key objek dari backend (Login / Regis baru)
-                if (parsedUser.nama) {
-                    activePatient.name = parsedUser.nama;
-                } else if (parsedUser.name) {
-                    activePatient.name = parsedUser.name;
-                } else if (parsedUser.username) {
-                    activePatient.name = parsedUser.username;
-                } else if (parsedUser.email) {
-                    // Jika hanya ada email, kita bersihkan jadi nama indah
-                    const frontEmail = parsedUser.email.split('@')[0];
-                    activePatient.name = frontEmail.charAt(0).toUpperCase() + frontEmail.slice(1);
-                } else if (typeof parsedUser === 'string') {
-                    activePatient.name = parsedUser;
-                }
+                if (parsedUser.nama) activePatient.name = parsedUser.nama;
+                else if (parsedUser.name) activePatient.name = parsedUser.name;
+                else if (parsedUser.username) activePatient.name = parsedUser.username;
+                else if (typeof parsedUser === 'string') activePatient.name = parsedUser;
             } catch (e) {
-                // Jika data di localStorage berbentuk String murni (bukan objek JSON)
                 if (sessionUser && sessionUser !== "undefined") {
                     activePatient.name = sessionUser.replace(/['"]+/g, '');
                 }
             }
         }
 
-        // =========================================================================
-        // TAMBAHAN LOGIKA: Memotong domain email jika 'name' atau 'nama' dari DB berupa email
-        // =========================================================================
         if (activePatient.name && activePatient.name.includes('@')) {
             activePatient.name = activePatient.name.split('@')[0];
         }
-        // =========================================================================
 
-        // Fungsi eksekusi paksa penggantian nama di layar
         function eksekusiGantiNama() {
             const profileNameElement = document.getElementById("form-patient-name");
-            if (profileNameElement) {
-                profileNameElement.innerText = activePatient.name;
-            }
+            if (profileNameElement) profileNameElement.innerText = activePatient.name;
 
-            // Cadangan mutlak: cari teks "Budi Santoso" yang tersisa di seluruh halaman lalu hancurkan
             const semuaElemen = document.getElementsByTagName("*");
             for (let i = 0; i < semuaElemen.length; i++) {
                 let el = semuaElemen[i];
@@ -237,64 +213,89 @@
             }
         }
 
-        // Jalankan langsung di berbagai lifecycle halaman agar tidak lolos
         eksekusiGantiNama();
         window.addEventListener("DOMContentLoaded", eksekusiGantiNama);
         window.addEventListener("load", eksekusiGantiNama);
-        setTimeout(eksekusiGantiNama, 50);
-        setTimeout(eksekusiGantiNama, 300);
 
-        // === LOGIKA OPERASIONAL POP-UP MODAL RIWAYAT ===
+        // === LOGIKA OPERASIONAL POP-UP MODAL RIWAYAT (DIPERBAIKI SECARA ULTRA-ROBUST) ===
         const modalRiwayat = document.getElementById('modal-riwayat');
         const navRiwayatBtn = document.getElementById('nav-riwayat');
         const closeModalBtn = document.getElementById('close-modal-btn');
         const modalTableBody = document.getElementById('modal-table-body');
 
-        // Buka Modal & Ambil Data Database saat Menu Navigasi diklik
         navRiwayatBtn.addEventListener('click', () => {
             modalRiwayat.classList.remove('hidden');
             modalTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400">Memuat riwayat...</td></tr>`;
             
-            // Ambil langsung dari Database pendaftaran
             fetch('https://antree-production.up.railway.app/api/antrean')
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP Error! Status: ${res.status}`);
+                }
+                return res.json();
+            })
             .then(data => {
-                // Filter berdasarkan nama user aktif secara presisi (Case-Insensitive)
-                const filtered = data.filter(item => item.namaPasien && item.namaPasien.toLowerCase().trim() === activePatient.name.toLowerCase().trim());
+                // PENANGANAN SAKTI: Mengekstrak array dari berbagai jenis struktur response API
+                let dataArray = [];
+                if (Array.isArray(data)) {
+                    dataArray = data;
+                } else if (data && Array.isArray(data.data)) {
+                    dataArray = data.data;
+                } else if (data && Array.isArray(data.content)) {
+                    dataArray = data.content;
+                } else if (data && typeof data === 'object') {
+                    for (let key in data) {
+                        if (Array.isArray(data[key])) {
+                            dataArray = data[key];
+                            break;
+                        }
+                    }
+                }
+
+                // Filter berdasarkan nama pasien aktif (Case Insensitive & Bersih Space)
+                const filtered = dataArray.filter(item => 
+                    item && item.namaPasien && 
+                    item.namaPasien.toLowerCase().trim() === activePatient.name.toLowerCase().trim()
+                );
                 
                 if (filtered.length === 0) {
-                    modalTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400">Belum ada riwayat pendaftaran.</td></tr>`;
+                    modalTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400">Belum ada riwayat untuk nama "${activePatient.name}".</td></tr>`;
                     return;
                 }
 
-                // Urutkan dari yang paling baru
-                filtered.sort((a, b) => b.id - a.id);
+                // Urutkan berdasarkan ID pendaftaran terbaru
+                filtered.sort((a, b) => (b.id || 0) - (a.id || 0));
 
                 modalTableBody.innerHTML = '';
                 filtered.forEach(item => {
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50";
+                    tr.className = "hover:bg-slate-50 border-b border-gray-100";
                     tr.innerHTML = `
                         <td class="p-3 font-medium text-gray-800">${item.tanggal || '-'}</td>
                         <td class="p-3 text-gray-600">${item.poli || '-'}</td>
-                        <td class="p-3 text-center font-bold text-primary">A-00${item.id}</td>
+                        <td class="p-3 text-center font-bold text-primary">A-00${item.id || ''}</td>
                     `;
                     modalTableBody.appendChild(tr);
                 });
             })
             .catch(err => {
                 console.error(err);
-                modalTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500">Gagal memuat data database.</td></tr>`;
+                // Menampilkan alasan error teknis spesifik langsung di bawah modal text red
+                modalTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="p-4 text-center text-red-500 font-medium">
+                            Gagal memuat data database.<br>
+                            <span class="text-[10px] text-gray-400 font-normal">Detail: ${err.message}</span>
+                        </td>
+                    </tr>`;
             });
         });
 
-        // Tutup Modal
         closeModalBtn.addEventListener('click', () => modalRiwayat.classList.add('hidden'));
         modalRiwayat.addEventListener('click', (e) => { if(e.target === modalRiwayat) modalRiwayat.classList.add('hidden'); });
 
         // === PROSES SELEKSI TANGGAL ===
         let selectedDate = "14 Okt 2024";
-
         document.querySelectorAll('.date-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.date-btn').forEach(b => {
@@ -310,12 +311,11 @@
         const form = document.getElementById('registration-form');
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-
             const poli = document.getElementById('input-poli').value;
             const doctor = document.getElementById('input-doctor').value;
 
             const dataUntukSimpan = {
-                namaPasien: activePatient.name, // Otomatis mengirimkan nama user aktif yang login/regis!
+                namaPasien: activePatient.name,
                 poli: poli,
                 dokter: doctor,
                 tanggal: selectedDate
@@ -386,7 +386,7 @@
                     <table style="width: 100%; font-size: 12px; margin-top: 20px; border-collapse: collapse;">
                         <tr><td style="padding: 5px; color: #666;">Pasien</td><td style="font-weight:bold;">: ${namaPasien}</td></tr>
                         <tr><td style="padding: 5px; color: #666;">Poli</td><td style="font-weight:bold;">: ${poli}</td></tr>
-                        <tr><td style="padding: 5px; color: #666;">Doc</td><td style="font-weight:bold;">: ${dokter}</td></tr>
+                        <tr><td style="padding: 5px; color: #666;">Dokter</td><td style="font-weight:bold;">: ${dokter}</td></tr>
                         <tr><td style="padding: 5px; color: #666;">Tanggal</td><td style="font-weight:bold;">: ${tgl}</td></tr>
                     </table>
                     <p style="text-align: center; margin-top: 20px; font-size: 10px; color: #999;">Tunjukkan tiket ini di loket</p>
