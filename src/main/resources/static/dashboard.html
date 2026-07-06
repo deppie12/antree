@@ -149,37 +149,64 @@
     </main>
 
     <script>
-       // 1. Ambil data dari localStorage
-        const sessionUser = localStorage.getItem('user_aktif');
+        // === PROSES DETEKSI NAMA USER (SUPER SAKTI & COMPATIBLE) ===
+        const sessionUser = localStorage.getItem('user_aktif') || localStorage.getItem('user');
         let activePatient = {
-            name: "Budi Santoso", // Nama default kalau tidak ada yang login
+            name: "Budi Santoso", 
             rm: "12-34-56"
         };
 
-        // 2. Jika data user ditemukan, langsung ganti namanya saat itu juga!
         if (sessionUser) {
-            const parsedUser = JSON.parse(sessionUser);
-            
-            if (parsedUser.nama) {
-                activePatient.name = parsedUser.nama;
-            } else if (parsedUser.name) {
-                activePatient.name = parsedUser.name;
-            } else if (parsedUser.email) {
-                // Potong email (mila@gmail.com -> Mila)
-                const frontEmail = parsedUser.email.split('@')[0];
-                activePatient.name = frontEmail.charAt(0).toUpperCase() + frontEmail.slice(1);
+            try {
+                const parsedUser = JSON.parse(sessionUser);
+                
+                // Mendeteksi semua kemungkinan key objek dari backend (Login / Regis baru)
+                if (parsedUser.nama) {
+                    activePatient.name = parsedUser.nama;
+                } else if (parsedUser.name) {
+                    activePatient.name = parsedUser.name;
+                } else if (parsedUser.username) {
+                    activePatient.name = parsedUser.username;
+                } else if (parsedUser.email) {
+                    // Jika hanya ada email, kita bersihkan jadi nama indah
+                    const frontEmail = parsedUser.email.split('@')[0];
+                    activePatient.name = frontEmail.charAt(0).toUpperCase() + frontEmail.slice(1);
+                } else if (typeof parsedUser === 'string') {
+                    activePatient.name = parsedUser;
+                }
+            } catch (e) {
+                // Jika data di localStorage berbentuk String murni (bukan objek JSON)
+                if (sessionUser && sessionUser !== "undefined") {
+                    activePatient.name = sessionUser.replace(/['"]+/g, '');
+                }
             }
         }
 
-        // 3. Paksa ganti teks di HTML secara langsung tanpa menunggu DOMContentLoaded
-        // Kode ini ditaruh di luar fungsi apa pun agar langsung dieksekusi browser
-        setTimeout(() => {
+        // Fungsi eksekusi paksa penggantian nama di layar
+        function eksekusiGantiNama() {
             const profileNameElement = document.getElementById("form-patient-name");
             if (profileNameElement) {
                 profileNameElement.innerText = activePatient.name;
-                console.log("Nama berhasil diubah secara paksa menjadi:", activePatient.name);
             }
-        }, 100); // diberi jeda 100 milidetik agar HTML selesai merender dulu
+
+            // Cadangan mutlak: cari teks "Budi Santoso" yang tersisa di seluruh halaman lalu hancurkan
+            const semuaElemen = document.getElementsByTagName("*");
+            for (let i = 0; i < semuaElemen.length; i++) {
+                let el = semuaElemen[i];
+                if (el.children.length === 0 && el.innerText.trim() === "Budi Santoso") {
+                    el.innerText = activePatient.name;
+                }
+            }
+        }
+
+        // Jalankan langsung di berbagai lifecycle halaman agar tidak lolos
+        eksekusiGantiNama();
+        window.addEventListener("DOMContentLoaded", eksekusiGantiNama);
+        window.addEventListener("load", eksekusiGantiNama);
+        setTimeout(eksekusiGantiNama, 50);
+        setTimeout(eksekusiGantiNama, 300);
+
+        // === PROSES SELEKSI TANGGAL ===
         let selectedDate = "14 Okt 2024";
 
         document.querySelectorAll('.date-btn').forEach(btn => {
@@ -193,6 +220,7 @@
             });
         });
 
+        // === PROSES DAFTAR ANTREAN ===
         const form = document.getElementById('registration-form');
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -201,7 +229,7 @@
             const doctor = document.getElementById('input-doctor').value;
 
             const dataUntukSimpan = {
-                namaPasien: activePatient.name, 
+                namaPasien: activePatient.name, // Otomatis mengirimkan nama user aktif yang login/regis!
                 poli: poli,
                 dokter: doctor,
                 tanggal: selectedDate
@@ -249,6 +277,7 @@
             });
         });
 
+        // === PROSES UNDUH TIKET PDF ===
         document.getElementById("download-btn").addEventListener("click", () => {
             const noAntrean = document.querySelector(".queue-number").innerText;
             const namaPasien = document.querySelector("#patient-name").innerText;
