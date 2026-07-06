@@ -134,7 +134,8 @@
                         <button class="w-full py-4 bg-primary text-on-primary rounded-lg font-bold hover:bg-primary-container transition-all shadow-sm active:scale-[0.98]" type="submit" id="btnMasuk">
                             Masuk
                         </button>
-                                                <div class="flex items-center gap-4 py-2">
+                        
+                        <div class="flex items-center gap-4 py-2">
                             <div class="h-px flex-grow bg-outline-variant"></div>
                             <span class="text-xs text-outline uppercase font-bold">Atau</span>
                             <div class="h-px flex-grow bg-outline-variant"></div>
@@ -180,46 +181,57 @@
             }
         }
 
-        // Menggunakan ID "loginForm" dari HTML kamu
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            // Mengambil nilai berdasarkan ID di HTML kamu
-            const usernameInput = document.getElementById('email').value;
-            const passwordInput = document.getElementById('password').value;
-
-        // Ganti bagian ini di dalam script login.html
             const dataLogin = {
                 email: document.getElementById('email').value, 
                 password: document.getElementById('password').value
             };
 
-            const btn = document.getElementById('btnMasuk'); // ID tombol dari HTML kamu
-                btn.innerHTML = 'Mengecek...';
+            const btn = document.getElementById('btnMasuk'); 
+            btn.innerHTML = 'Mengecek...';
             btn.disabled = true;
 
+            // 1. Coba login sebagai Admin terlebih dahulu
             fetch('https://antree-production.up.railway.app/api/admin/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dataLogin)
             })
             .then(response => {
-                if (!response.ok) {
-                    throw new Error('Username atau Password salah!');
+                // Jika statusnya 200 OK, berarti dia Admin terdaftar
+                if (response.ok) {
+                    return response.json().then(data => ({ role: 'admin', data }));
                 }
-                return response.json();
+                
+                // 2. Jika gagal di admin, coba lempar ke API User biasa
+                return fetch('https://antree-production.up.railway.app/api/user/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataLogin)
+                }).then(res => {
+                    if (!res.ok) throw new Error('Email atau Password salah!');
+                    return res.json().then(data => ({ role: 'user', data }));
+                });
             })
-            .then(data => {
-                alert('Login Admin Berhasil!');
-                localStorage.setItem('admin_aktif', JSON.stringify(data));
-                window.location.href = 'admin.html'; 
+            .then(result => {
+                if (result.role === 'admin') {
+                    alert('Login Admin Berhasil!');
+                    localStorage.setItem('admin_aktif', JSON.stringify(result.data));
+                    window.location.href = 'admin.html'; 
+                } else {
+                    alert('Login User Berhasil!');
+                    localStorage.setItem('user_aktif', JSON.stringify(result.data));
+                    window.location.href = 'dashboard.html'; 
+                }
             })
             .catch(error => {
                 alert(error.message);
-                btn.innerHTML = 'Masuk'; // Kembalikan teks tombol
+                btn.innerHTML = 'Masuk'; 
                 btn.disabled = false;
             });
         });
     </script>
 </body>
-</html>     
+</html>
