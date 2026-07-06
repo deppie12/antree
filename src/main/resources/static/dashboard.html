@@ -39,7 +39,8 @@
             <div class="text-2xl font-bold text-primary tracking-tighter">ANTREE</div>
             <div class="hidden md:flex items-center gap-8 text-sm font-medium">
                 <a class="text-primary border-b-2 border-primary pb-1" href="#">Layanan</a>
-                <a class="text-gray-500 hover:text-primary" href="#riwayat-kunjungan">Riwayat Kunjungan</a>
+                <!-- MENGGANTI JADWAL DOKTER MENJADI RIWAYAT KUNJUNGAN DENGAN ID POINTER -->
+                <a class="text-gray-500 hover:text-primary cursor-pointer" id="nav-riwayat">Riwayat Kunjungan</a>
                 <a class="text-gray-500 hover:text-primary" href="#">Bantuan</a>
             </div>
         </div>
@@ -144,34 +145,38 @@
                         </button>
                     </form>
                 </div>
-
-                <!-- KOMPONEN RIWAYAT KUNJUNGAN USER -->
-                <div id="riwayat-kunjungan" class="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm mt-6">
-                    <div class="flex items-center gap-2 mb-4 text-primary">
-                        <span class="material-symbols-outlined">history</span>
-                        <h2 class="text-xl font-bold">Riwayat Kunjungan</h2>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="border-b border-gray-200 text-xs font-bold text-gray-500 uppercase bg-gray-50">
-                                    <th class="p-3">Tanggal</th>
-                                    <th class="p-3">Poliklinik</th>
-                                    <th class="p-3">Dokter</th>
-                                    <th class="p-3 text-center">No. Antrean</th>
-                                </tr>
-                            </thead>
-                            <tbody id="riwayat-table-body" class="text-sm divide-y divide-gray-100">
-                                <tr>
-                                    <td colspan="4" class="p-4 text-center text-gray-400 text-xs">Memuat data riwayat...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
             </section>
         </div>
     </main>
+
+    <!-- POP-UP MODAL KECIL UNTUK RIWAYAT KUNJUNGAN -->
+    <div id="modal-riwayat" class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative animate-in fade-in zoom-in-95 duration-200">
+            <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            
+            <div class="flex items-center gap-2 mb-4 text-primary">
+                <span class="material-symbols-outlined">history</span>
+                <h3 class="text-lg font-bold">Riwayat Kunjungan</h3>
+            </div>
+
+            <div class="overflow-x-auto max-h-64 scrollbar-hide border border-gray-100 rounded-xl">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-gray-200 text-gray-500 bg-gray-50 sticky top-0 font-bold">
+                            <th class="p-3">Tanggal</th>
+                            <th class="p-3">Poliklinik</th>
+                            <th class="p-3 text-center">No. Antrean</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-table-body" class="divide-y divide-gray-100 text-gray-700">
+                        <!-- Data dimasukkan via Javascript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
     <script>
         // === PROSES DETEKSI NAMA USER (SUPER SAKTI & COMPATIBLE) ===
@@ -234,52 +239,58 @@
 
         // Jalankan langsung di berbagai lifecycle halaman agar tidak lolos
         eksekusiGantiNama();
-        window.addEventListener("DOMContentLoaded", () => {
-            eksekusiGantiNama();
-            loadRiwayatKunjungan(); // Ambil riwayat saat dokumen selesai dimuat
-        });
+        window.addEventListener("DOMContentLoaded", eksekusiGantiNama);
         window.addEventListener("load", eksekusiGantiNama);
         setTimeout(eksekusiGantiNama, 50);
         setTimeout(eksekusiGantiNama, 300);
 
-        // === FUNGSI LOAD DATA RIWAYAT DARI DATABASE ANTREAN ===
-        function loadRiwayatKunjungan() {
-            const tbody = document.getElementById('riwayat-table-body');
+        // === LOGIKA OPERASIONAL POP-UP MODAL RIWAYAT ===
+        const modalRiwayat = document.getElementById('modal-riwayat');
+        const navRiwayatBtn = document.getElementById('nav-riwayat');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const modalTableBody = document.getElementById('modal-table-body');
+
+        // Buka Modal & Ambil Data Database saat Menu Navigasi diklik
+        navRiwayatBtn.addEventListener('click', () => {
+            modalRiwayat.classList.remove('hidden');
+            modalTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400">Memuat riwayat...</td></tr>`;
+            
+            // Ambil langsung dari Database pendaftaran
             fetch('https://antree-production.up.railway.app/api/antrean')
-            .then(response => {
-                if (!response.ok) throw new Error('Gagal mengambil data');
-                return response.json();
-            })
+            .then(res => res.json())
             .then(data => {
-                // Saring riwayat yang namaPasien-nya sama dengan user aktif saat ini
-                const userHistory = data.filter(item => item.namaPasien && item.namaPasien.toLowerCase() === activePatient.name.toLowerCase());
+                // Filter berdasarkan nama user aktif secara presisi (Case-Insensitive)
+                const filtered = data.filter(item => item.namaPasien && item.namaPasien.toLowerCase().trim() === activePatient.name.toLowerCase().trim());
                 
-                if (userHistory.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400 text-xs">Belum ada riwayat kunjungan.</td></tr>`;
+                if (filtered.length === 0) {
+                    modalTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400">Belum ada riwayat pendaftaran.</td></tr>`;
                     return;
                 }
 
-                // Urutkan dari data pendaftaran terbaru (ID terbesar)
-                userHistory.sort((a, b) => b.id - a.id);
+                // Urutkan dari yang paling baru
+                filtered.sort((a, b) => b.id - a.id);
 
-                tbody.innerHTML = '';
-                userHistory.forEach(item => {
+                modalTableBody.innerHTML = '';
+                filtered.forEach(item => {
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50 transition-colors";
+                    tr.className = "hover:bg-slate-50";
                     tr.innerHTML = `
-                        <td class="p-3 text-gray-700">${item.tanggal || '-'}</td>
+                        <td class="p-3 font-medium text-gray-800">${item.tanggal || '-'}</td>
                         <td class="p-3 text-gray-600">${item.poli || '-'}</td>
-                        <td class="p-3 text-gray-600">${item.dokter || '-'}</td>
                         <td class="p-3 text-center font-bold text-primary">A-00${item.id}</td>
                     `;
-                    tbody.appendChild(tr);
+                    modalTableBody.appendChild(tr);
                 });
             })
             .catch(err => {
                 console.error(err);
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500 text-xs">Gagal memuat data dari database.</td></tr>`;
+                modalTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-red-500">Gagal memuat data database.</td></tr>`;
             });
-        }
+        });
+
+        // Tutup Modal
+        closeModalBtn.addEventListener('click', () => modalRiwayat.classList.add('hidden'));
+        modalRiwayat.addEventListener('click', (e) => { if(e.target === modalRiwayat) modalRiwayat.classList.add('hidden'); });
 
         // === PROSES SELEKSI TANGGAL ===
         let selectedDate = "14 Okt 2024";
@@ -344,9 +355,6 @@
 
                 btn.innerHTML = `Daftar Antrean Sekarang <span class="material-symbols-outlined">arrow_forward</span>`;
                 alert("Pendaftaran Berhasil! Nomor: A-00" + data.id);
-                
-                // REFRESH DATA RIWAYAT SECARA REALTIME SETELAH BERHASIL DAFTAR
-                loadRiwayatKunjungan();
             })
             .catch(err => {
                 console.error(err);
@@ -378,7 +386,7 @@
                     <table style="width: 100%; font-size: 12px; margin-top: 20px; border-collapse: collapse;">
                         <tr><td style="padding: 5px; color: #666;">Pasien</td><td style="font-weight:bold;">: ${namaPasien}</td></tr>
                         <tr><td style="padding: 5px; color: #666;">Poli</td><td style="font-weight:bold;">: ${poli}</td></tr>
-                        <tr><td style="padding: 5px; color: #666;">Dokter</td><td style="font-weight:bold;">: ${dokter}</td></tr>
+                        <tr><td style="padding: 5px; color: #666;">Doc</td><td style="font-weight:bold;">: ${dokter}</td></tr>
                         <tr><td style="padding: 5px; color: #666;">Tanggal</td><td style="font-weight:bold;">: ${tgl}</td></tr>
                     </table>
                     <p style="text-align: center; margin-top: 20px; font-size: 10px; color: #999;">Tunjukkan tiket ini di loket</p>
