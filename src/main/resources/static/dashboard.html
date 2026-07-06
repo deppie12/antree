@@ -39,7 +39,7 @@
             <div class="text-2xl font-bold text-primary tracking-tighter">ANTREE</div>
             <div class="hidden md:flex items-center gap-8 text-sm font-medium">
                 <a class="text-primary border-b-2 border-primary pb-1" href="#">Layanan</a>
-                <a class="text-gray-500 hover:text-primary" href="#">Jadwal Dokter</a>
+                <a class="text-gray-500 hover:text-primary" href="#riwayat-kunjungan">Riwayat Kunjungan</a>
                 <a class="text-gray-500 hover:text-primary" href="#">Bantuan</a>
             </div>
         </div>
@@ -144,6 +144,31 @@
                         </button>
                     </form>
                 </div>
+
+                <!-- KOMPONEN RIWAYAT KUNJUNGAN USER -->
+                <div id="riwayat-kunjungan" class="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm mt-6">
+                    <div class="flex items-center gap-2 mb-4 text-primary">
+                        <span class="material-symbols-outlined">history</span>
+                        <h2 class="text-xl font-bold">Riwayat Kunjungan</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-gray-200 text-xs font-bold text-gray-500 uppercase bg-gray-50">
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">Poliklinik</th>
+                                    <th class="p-3">Dokter</th>
+                                    <th class="p-3 text-center">No. Antrean</th>
+                                </tr>
+                            </thead>
+                            <tbody id="riwayat-table-body" class="text-sm divide-y divide-gray-100">
+                                <tr>
+                                    <td colspan="4" class="p-4 text-center text-gray-400 text-xs">Memuat data riwayat...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
         </div>
     </main>
@@ -209,10 +234,52 @@
 
         // Jalankan langsung di berbagai lifecycle halaman agar tidak lolos
         eksekusiGantiNama();
-        window.addEventListener("DOMContentLoaded", eksekusiGantiNama);
+        window.addEventListener("DOMContentLoaded", () => {
+            eksekusiGantiNama();
+            loadRiwayatKunjungan(); // Ambil riwayat saat dokumen selesai dimuat
+        });
         window.addEventListener("load", eksekusiGantiNama);
         setTimeout(eksekusiGantiNama, 50);
         setTimeout(eksekusiGantiNama, 300);
+
+        // === FUNGSI LOAD DATA RIWAYAT DARI DATABASE ANTREAN ===
+        function loadRiwayatKunjungan() {
+            const tbody = document.getElementById('riwayat-table-body');
+            fetch('https://antree-production.up.railway.app/api/antrean')
+            .then(response => {
+                if (!response.ok) throw new Error('Gagal mengambil data');
+                return response.json();
+            })
+            .then(data => {
+                // Saring riwayat yang namaPasien-nya sama dengan user aktif saat ini
+                const userHistory = data.filter(item => item.namaPasien && item.namaPasien.toLowerCase() === activePatient.name.toLowerCase());
+                
+                if (userHistory.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400 text-xs">Belum ada riwayat kunjungan.</td></tr>`;
+                    return;
+                }
+
+                // Urutkan dari data pendaftaran terbaru (ID terbesar)
+                userHistory.sort((a, b) => b.id - a.id);
+
+                tbody.innerHTML = '';
+                userHistory.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors";
+                    tr.innerHTML = `
+                        <td class="p-3 text-gray-700">${item.tanggal || '-'}</td>
+                        <td class="p-3 text-gray-600">${item.poli || '-'}</td>
+                        <td class="p-3 text-gray-600">${item.dokter || '-'}</td>
+                        <td class="p-3 text-center font-bold text-primary">A-00${item.id}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500 text-xs">Gagal memuat data dari database.</td></tr>`;
+            });
+        }
 
         // === PROSES SELEKSI TANGGAL ===
         let selectedDate = "14 Okt 2024";
@@ -277,6 +344,9 @@
 
                 btn.innerHTML = `Daftar Antrean Sekarang <span class="material-symbols-outlined">arrow_forward</span>`;
                 alert("Pendaftaran Berhasil! Nomor: A-00" + data.id);
+                
+                // REFRESH DATA RIWAYAT SECARA REALTIME SETELAH BERHASIL DAFTAR
+                loadRiwayatKunjungan();
             })
             .catch(err => {
                 console.error(err);
