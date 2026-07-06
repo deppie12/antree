@@ -252,32 +252,68 @@
             });
         });
 
-     // GANTI KODE TOMBOL DOWNLOAD ANDA DENGAN KODE YANG SUDAH DIPERBAIKI INI:
-// GANTI KODE TOMBOL DOWNLOAD ANDA DENGAN KODE BERIKUT:
-document.getElementById("download-btn").addEventListener("click", () => {
-    // 1. Ambil langsung elemen kartu antrean asli yang ada di layar dashboard Anda
-    // Kita targetkan container utama yang membungkus nomor antrean dan nama poli
-    const elemenKartu = document.querySelector(".queue-number").closest(".bg-primary, .bg-white, div"); 
+     
+        document.getElementById("download-btn").addEventListener("click", () => {
+            // 1. Ambil data dengan aman
+            const noAntrean = document.querySelector(".queue-number") ? document.querySelector(".queue-number").innerText : "A-001";
+            const namaPoli = document.querySelector("#poli-name") ? document.querySelector("#poli-name").innerText : "Poliklinik";
+            const namaPasien = (typeof activePatient !== 'undefined' && activePatient && activePatient.name) ? activePatient.name : "Pasien";
+
+            // 2. Buat kanvas cetak murni di dalam memori (Tidak perlu ditempel ke layar)
+            const printArea = document.createElement("div");
     
-    // Ambil nomor antrean untuk nama file
-    const noAntrean = document.querySelector(".queue-number") ? document.querySelector(".queue-number").innerText : "Tiket";
+            // Desain diatur dengan ukuran FIX: Lebar 500px dan Tinggi 650px. 
+            printArea.innerHTML = `
+                <div style="width: 500px; height: 650px; padding: 40px; box-sizing: border-box; background-color: #ffffff; font-family: Arial, sans-serif;">
+                    <div style="border: 3px solid #004482; border-radius: 20px; padding: 30px; height: 100%; box-sizing: border-box; text-align: center;">
+                
+                        <h1 style="color: #004482; font-size: 32px; margin: 0; font-weight: bold; letter-spacing: 2px;">ANTREE</h1>
+                        <p style="color: #64748b; font-size: 14px; margin: 5px 0 20px 0;">Antrean Cerdas Rumah Sakit</p>
+                
+                        <div style="border-top: 2px dashed #cbd5e1; margin: 20px 0;"></div>
+                
+                        <p style="color: #64748b; font-size: 14px; margin: 0; font-weight: bold; text-transform: uppercase;">Nomor Antrean Anda</p>
+                        <h1 style="color: #004482; font-size: 80px; margin: 15px 0; font-weight: 900; line-height: 1;">${noAntrean}</h1>
+                        <div style="background-color: #e0f2fe; color: #0369a1; padding: 8px 20px; border-radius: 20px; display: inline-block; font-size: 16px; font-weight: bold; margin-bottom: 25px;">
+                            ${namaPoli}
+                        </div>
+                
+                        <div style="border: 1px solid #e2e8f0; background-color: #f8fafc; border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 25px;">
+                            <div style="margin-bottom: 12px;">
+                                <span style="color: #64748b; font-size: 15px; display: inline-block; width: 130px;">Nama Pasien</span>
+                                <span style="color: #0f172a; font-size: 15px; font-weight: bold;">: ${namaPasien}</span>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <span style="color: #64748b; font-size: 15px; display: inline-block; width: 130px;">Tanggal</span>
+                                <span style="color: #0f172a; font-size: 15px; font-weight: bold;">: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                            </div>
+                            <div>
+                                <span style="color: #64748b; font-size: 15px; display: inline-block; width: 130px;">Waktu Cetak</span>
+                                <span style="color: #0f172a; font-size: 15px; font-weight: bold;">: ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
+                            </div>
+                        </div>
+                
+                        <div style="border-top: 2px dashed #cbd5e1; margin: 20px 0;">
+                
+                            <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0;">Harap simpan PDF ini dan tunjukkan kepada petugas loket.</p>
+                            <p style="color: #004482; font-size: 16px; font-weight: bold; margin: 15px 0 0 0;">Semoga Lekas Sembuh</p>
+                        </div>
+                    </div>
+                </div>
+            `;
 
-    // 2. Konfigurasi PDF agar pas menyesuaikan ukuran kartu asli
-    const opt = {
-        margin:       15,
-        filename:     `Tiket-Antrean-${noAntrean}.pdf`,
-        image:        { type: 'jpeg', quality: 1.0 },
-        html2canvas:  { 
-            scale: 3,          // Membuat teks tajam HD dan anti pecah
-            useCORS: true,     // Memastikan icon atau font ke-load sempurna
-            letterRendering: true
-        },
-        jsPDF:        { unit: 'mm', format: 'a5', orientation: 'portrait' } // Ukuran kertas struk A5
-    };
+            //3. KUNCI RAHASIA: Memaksa PDF dibuat persis 500x650 pixel (Menghilangkan masalah format kertas / gepeng)
+            const opt = {
+                margin:       0,
+                filename:     `Tiket-Antrean-${noAntrean}.pdf`,
+                image:        { type: 'jpeg', quality: 1.0 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'px', format: [500, 650], orientation: 'portrait' } 
+            };
 
-    // 3. Langsung foto kartu aslinya dan unduh sebagai PDF
-    html2pdf().set(opt).from(elemenKartu).save();
-});
+            // 4. Eksekusi
+            html2pdf().set(opt).from(printArea).save();
+        });
     </script>
 </body>
 </html>
