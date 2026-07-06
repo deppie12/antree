@@ -252,24 +252,30 @@
             });
         });
 
-      // GANTI KODE TOMBOL DOWNLOAD ANDA DENGAN KODE BERIKUT:
+     // GANTI KODE TOMBOL DOWNLOAD ANDA DENGAN KODE YANG SUDAH DIPERBAIKI INI:
 document.getElementById("download-btn").addEventListener("click", () => {
-    // 1. Proteksi data: Ambil teks asli dari elemen dashboard Anda (dengan fallback jika kosong)
+    // 1. Ambil data teks asli dari halaman dashboard Anda
     const noAntrean = document.querySelector(".queue-number") ? document.querySelector(".queue-number").innerText : "A-001";
     const namaPoli = document.querySelector("#poli-name") ? document.querySelector("#poli-name").innerText : "Poliklinik";
-    const namaPasien = (typeof activePatient !== 'undefined' && activePatient && activePatient.name) ? activePatient.name : "Pasien";
+    
+    let namaPasien = "Pasien";
+    if (typeof activePatient !== 'undefined' && activePatient && activePatient.name) {
+        namaPasien = activePatient.name;
+    }
 
-    // 2. Buat elemen kontainer khusus PDF
+    // 2. Buat elemen kontainer untuk struk PDF
     const element = document.createElement("div");
     
-    // PENTING: Sembunyikan elemen ini jauh di luar layar agar tidak merusak visual dashboard Anda
-    element.style.position = "absolute";
-    element.style.left = "-9999px"; 
+    // SOLUSI ANTI KOSONG: Taruh di fixed top-left, tapi z-index minus agar sembunyi di belakang layar utama
+    element.style.position = "fixed";
     element.style.top = "0";
-    element.style.width = "400px"; // Ukuran lebar dikunci agar struk proporsional
+    element.style.left = "0";
+    element.style.zIndex = "-9999"; 
+    element.style.width = "400px"; // Dikunci agar tidak melar/gepeng
     element.style.background = "#ffffff";
+    element.style.padding = "10px";
 
-    // Desain struk e-tiket komplit yang rapi & kokoh
+    // Desain struk cetak tiket antrean yang kokoh & rapi
     element.innerHTML = `
         <div style="border: 2px solid #004482; border-radius: 12px; padding: 25px; font-family: 'Arial', sans-serif; background: #ffffff; text-align: center; box-sizing: border-box;">
             
@@ -311,32 +317,23 @@ document.getElementById("download-btn").addEventListener("click", () => {
         </div>
     `;
 
-    // 3. MASUKKAN KE DOM (Wajib agar browser bisa menghitung layout gaya & teksnya secara nyata)
+    // 3. Masukkan ke dokumen agar bisa dibaca oleh html2pdf
     document.body.appendChild(element);
 
-    // 4. Pengaturan kertas PDF (Menggunakan A5 portrait agar pas dengan ukuran struk)
+    // 4. Konfigurasi PDF ukuran A5 Portrait
     const opt = {
         margin:       10,
         filename:     `Tiket-Antrean-${noAntrean}.pdf`,
         image:        { type: 'jpeg', quality: 1.0 },
-        html2canvas:  { scale: 3, useCORS: true, logging: false }, // Skala ditinggikan ke 3 agar tulisan tajam anti buram
+        html2canvas:  { scale: 3, useCORS: true, logging: false }, // Skala tinggi agar tulisan tajam garing
         jsPDF:        { unit: 'mm', format: 'a5', orientation: 'portrait' }
     };
 
-    // 5. Jalankan konversi PDF, setelah sukses terunduh, hapus kembali elemen bayangan tadi dari DOM
+    // 5. Cetak ke PDF, setelah selesai langsung hapus elemen bayangan dari memori
     html2pdf().set(opt).from(element).save().then(() => {
         document.body.removeChild(element);
     });
 });
-        document.getElementById("share-btn").addEventListener("click", async () => {
-            const shareText = `Antrean ${document.querySelector(".queue-number").innerText}\nPasien: ${activePatient.name}`;
-            if (navigator.share) {
-                try { await navigator.share({ title: "Tiket Antrean", text: shareText }); } catch (err) {}
-            } else {
-                navigator.clipboard.writeText(shareText);
-                alert("Link tiket disalin!");
-            }
-        });
     </script>
 </body>
 </html>
