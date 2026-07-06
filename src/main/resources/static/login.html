@@ -168,57 +168,17 @@
     </footer>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const dataLogin = {
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value
-            };
-
-            const btn = document.getElementById('btnMasuk');
-            btn.innerHTML = 'Mengecek...';
-            btn.disabled = true;
-
-            // 1. Coba login sebagai Admin terlebih dahulu
-            fetch('https://antree-production.up.railway.app/api/admin/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dataLogin)
-            })
-            .then(response => {
-                // Jika statusnya 200 OK, berarti dia Admin
-                if (response.ok) {
-                    return response.json().then(data => ({ role: 'admin', data }));
-                }
-                
-                // 2. Jika gagal (bukan admin), coba login ke API User baru kita
-                return fetch('https://antree-production.up.railway.app/api/user/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dataLogin)
-                }).then(res => {
-                    if (!res.ok) throw new Error('Email atau Password salah!');
-                    return res.json().then(data => ({ role: 'user', data }));
-                });
-            })
-            .then(result => {
-                if (result.role === 'admin') {
-                    alert('Login Admin Berhasil!');
-                    localStorage.setItem('admin_aktif', JSON.stringify(result.data));
-                    window.location.href = 'admin.html'; 
-                } else {
-                    alert('Login User Berhasil!');
-                    localStorage.setItem('user_aktif', JSON.stringify(result.data));
-                    window.location.href = 'dashboard.html'; // <--- Ganti dengan nama file halaman utama user Anda
-                }
-            })
-            .catch(error => {
-                alert(error.message);
-                btn.innerHTML = 'Masuk';
-                btn.disabled = false;
-            });
-        });
+      // Di dalam bagian .then(result => { ... }) pada login.html
+if (result.role === 'admin') {
+    alert('Login Admin Berhasil!');
+    localStorage.setItem('admin_aktif', JSON.stringify(result.data));
+    window.location.href = 'admin.html'; 
+} else {
+    alert('Login User Berhasil!');
+    // Pastikan result.data berisi objek pengguna yang lengkap
+    localStorage.setItem('user_aktif', JSON.stringify(result.data));
+    window.location.href = 'dashboard.html';
+}
     </script>
 </body>
 </html>
