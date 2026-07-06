@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html class="light" lang="id">
+
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
@@ -7,7 +8,9 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="js/antrean.js"></script>
 
     <script id="tailwind-config">
         tailwind.config = {
@@ -25,95 +28,198 @@
                         "outline-variant": "#c1c6d3",
                         "secondary": "#006d37",
                         "secondary-container": "#6bfe9c",
+                        "on-secondary-container": "#00743a",
                         "primary-container": "#005cab",
                         "outline": "#727783",
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    spacing: {
+                        "container-max": "1280px",
+                        "stack-lg": "48px",
+                        "margin": "40px",
+                        "stack-md": "24px"
                     }
                 },
             },
         }
     </script>
+
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
 </head>
 
-<body class="bg-surface text-on-surface min-h-screen flex flex-col font-sans">
+<body class="bg-surface text-on-surface min-h-screen flex flex-col">
 
-    <main class="flex-grow flex items-center justify-center p-4">
-        <div class="w-full max-w-[480px] bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm p-10">
-            <div class="mb-8 text-center">
-                <h2 class="text-2xl font-bold text-primary mb-2">ANTREE</h2>
-                <h2 class="text-2xl font-bold text-on-surface">Selamat Datang Kembali!</h2>
-                <p class="text-on-surface-variant text-sm">Masuk untuk melanjutkan antrean Anda.</p>
+    <header class="bg-surface-container-lowest border-b border-outline-variant fixed top-0 w-full z-50">
+        <div class="flex justify-between items-center w-full px-margin py-4 max-w-container-max mx-auto">
+            <div class="flex items-center gap-10">
+                <span class="text-3xl font-bold text-primary tracking-tight">ANTREE</span>
+                <nav class="hidden md:flex gap-8 items-center font-medium text-on-surface-variant">
+                    <a class="hover:text-primary transition-colors" href="#">Layanan</a>
+                    <a class="hover:text-primary transition-colors" href="#">Jadwal Dokter</a>
+                    <a class="hover:text-primary transition-colors" href="#">Tentang Kami</a>
+                    <a class="hover:text-primary transition-colors" href="#">Bantuan</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center pt-20">
+        <div class="w-full max-w-container-max mx-auto px-margin grid grid-cols-1 md:grid-cols-2 gap-12 items-center py-stack-lg">
+            
+            <div class="hidden md:flex flex-col gap-6">
+                <div class="inline-flex items-center px-4 py-2 bg-secondary-container text-on-secondary-container rounded-full w-fit">
+                    <span class="material-symbols-outlined mr-2 text-[18px]">verified_user</span>
+                    <span class="text-sm font-bold">Terpercaya & Tulus</span>
+                </div>
+                <h1 class="text-[48px] leading-[56px] font-bold text-on-surface">
+                    Antrean Cerdas,<br />
+                    <span class="text-primary">Layanan Nyaman.</span>
+                </h1>
+                <p class="text-lg text-on-surface-variant max-w-[500px]">
+                    Solusi manajemen antrean rumah sakit yang efisien untuk membantu Anda mendapatkan pelayanan medis tepat waktu.
+                </p>
+                <div class="mt-4 grid grid-cols-2 gap-4">
+                    <div class="p-6 bg-surface-container rounded-xl border border-outline-variant">
+                        <span class="material-symbols-outlined text-primary mb-2">schedule</span>
+                        <h3 class="text-xl font-semibold">Efisien</h3>
+                        <p class="text-sm text-on-surface-variant">Estimasi waktu akurat untuk setiap pasien.</p>
+                    </div>
+                    <div class="p-6 bg-surface-container rounded-xl border border-outline-variant">
+                        <span class="material-symbols-outlined text-secondary mb-2">health_and_safety</span>
+                        <h3 class="text-xl font-semibold">Nyaman</h3>
+                        <p class="text-sm text-on-surface-variant">Proses pendaftaran yang mudah dan cepat.</p>
+                    </div>
+                </div>
             </div>
 
-            <form id="loginForm" class="flex flex-col gap-6">
-                <div class="flex flex-col gap-2">
-                    <label class="text-sm font-semibold text-on-surface" for="email">Email</label>
-                    <input class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary outline-none" id="email" placeholder="contoh@email.com" type="text" required />
-                </div>
+            <div class="flex justify-center md:justify-end">
+                <div class="w-full max-w-[480px] bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm p-10">
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-on-surface">Selamat Datang Kembali!</h2>
+                        <p class="text-on-surface-variant">Silakan masuk menggunakan email/no telp dan password Anda untuk melanjutkan.</p>
+                    </div>
 
-                <div class="flex flex-col gap-2">
-                    <label class="text-sm font-semibold text-on-surface" for="password">Kata Sandi</label>
-                    <input class="w-full px-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary outline-none" id="password" placeholder="••••••••" type="password" required />
-                </div>
+                    <form id="loginForm" class="flex flex-col gap-6">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-sm font-semibold text-on-surface" for="email">Email/No. Telp</label>
+                            <div class="relative group">
+                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">mail</span>
+                                <input class="w-full pl-12 pr-4 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="email" placeholder="contoh@email.com" type="text" required />
+                            </div>
+                        </div>
 
-                <button class="w-full py-4 bg-primary text-on-primary rounded-lg font-bold hover:bg-primary-container transition-all" type="submit" id="btnMasuk">
-                    Masuk
-                </button>
-            </form>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm font-semibold text-on-surface" for="password">Kata Sandi</label>
+                                <a class="text-sm text-primary hover:underline" href="#">Lupa Sandi?</a>
+                            </div>
+                            <div class="relative group">
+                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">lock</span>
+                                <input class="w-full pl-12 pr-12 py-3 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" id="password" placeholder="••••••••" type="password" required />
+                                <button class="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant" type="button" onclick="togglePassword()">
+                                    <span class="material-symbols-outlined" id="eyeIcon">visibility</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button class="w-full py-4 bg-primary text-on-primary rounded-lg font-bold hover:bg-primary-container transition-all shadow-sm active:scale-[0.98]" type="submit" id="btnMasuk">
+                            Masuk
+                        </button>
+                                                <div class="flex items-center gap-4 py-2">
+                            <div class="h-px flex-grow bg-outline-variant"></div>
+                            <span class="text-xs text-outline uppercase font-bold">Atau</span>
+                            <div class="h-px flex-grow bg-outline-variant"></div>
+                        </div>
+
+                        <div class="text-center">
+                            <p class="text-on-surface-variant mb-3">Belum punya akun? Daftar sekarang!</p>
+                            <a href="pendaftaran.html" class="w-full py-3 border-2 border-secondary text-secondary rounded-lg font-bold hover:bg-secondary-container transition-all inline-block text-center">
+                                Daftar Sekarang
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </main>
 
+    <footer class="bg-surface-container border-t border-outline-variant w-full mt-auto">
+        <div class="flex flex-col md:flex-row justify-between items-center w-full px-margin py-stack-md max-w-container-max mx-auto gap-6">
+            <div class="text-center md:text-left">
+                <span class="text-xl font-bold text-primary">ANTREE</span>
+                <p class="text-xs text-on-surface-variant mt-1">© 2024 ANTREE. Solusi Antrean Rumah Sakit Terpercaya dan Tulus.</p>
+            </div>
+            <nav class="flex gap-6 text-sm text-on-surface-variant">
+                <a class="hover:underline" href="#">Kontak Darurat</a>
+                <a class="hover:underline" href="#">Kebijakan Privasi</a>
+                <a class="hover:underline" href="#">Syarat & Ketentuan</a>
+            </nav>
+        </div>
+    </footer>
+
     <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById("password");
+            const eyeIcon = document.getElementById("eyeIcon");
+        
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                eyeIcon.textContent = "visibility_off";
+            } else {
+                passwordInput.type = "password";
+                eyeIcon.textContent = "visibility";
+            }
+        }
+
+        // Menggunakan ID "loginForm" dari HTML kamu
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
+            // Mengambil nilai berdasarkan ID di HTML kamu
+            const usernameInput = document.getElementById('email').value;
+            const passwordInput = document.getElementById('password').value;
+
+        // Ganti bagian ini di dalam script login.html
             const dataLogin = {
-                email: document.getElementById('email').value,
+                email: document.getElementById('email').value, 
                 password: document.getElementById('password').value
             };
 
-            const btn = document.getElementById('btnMasuk');
-            btn.innerHTML = 'Mengecek...';
+            const btn = document.getElementById('btnMasuk'); // ID tombol dari HTML kamu
+                btn.innerHTML = 'Mengecek...';
             btn.disabled = true;
 
-            // 1. Coba login sebagai Admin terlebih dahulu
             fetch('https://antree-production.up.railway.app/api/admin/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dataLogin)
             })
             .then(response => {
-                // Jika statusnya 200 OK, berarti dia Admin
-                if (response.ok) {
-                    return response.json().then(data => ({ role: 'admin', data }));
+                if (!response.ok) {
+                    throw new Error('Username atau Password salah!');
                 }
-                
-                // 2. Jika gagal (bukan admin), coba login ke API User baru kita
-                return fetch('https://antree-production.up.railway.app/api/user/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dataLogin)
-                }).then(res => {
-                    if (!res.ok) throw new Error('Email atau Password salah!');
-                    return res.json().then(data => ({ role: 'user', data }));
-                });
+                return response.json();
             })
-            .then(result => {
-                if (result.role === 'admin') {
-                    alert('Login Admin Berhasil!');
-                    localStorage.setItem('admin_aktif', JSON.stringify(result.data));
-                    window.location.href = 'admin.html'; 
-                } else {
-                    alert('Login User Berhasil!');
-                    localStorage.setItem('user_aktif', JSON.stringify(result.data));
-                    window.location.href = 'dashboard.html'; // <--- Ganti dengan nama file halaman utama user Anda
-                }
+            .then(data => {
+                alert('Login Admin Berhasil!');
+                localStorage.setItem('admin_aktif', JSON.stringify(data));
+                window.location.href = 'admin.html'; 
             })
             .catch(error => {
                 alert(error.message);
-                btn.innerHTML = 'Masuk';
+                btn.innerHTML = 'Masuk'; // Kembalikan teks tombol
                 btn.disabled = false;
             });
         });
     </script>
 </body>
-</html>
+</html>     
