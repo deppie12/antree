@@ -217,7 +217,7 @@
         window.addEventListener("DOMContentLoaded", eksekusiGantiNama);
         window.addEventListener("load", eksekusiGantiNama);
 
-        // === LOGIKA OPERASIONAL POP-UP MODAL RIWAYAT (DIPERBAIKI SECARA ULTRA-ROBUST) ===
+        // === LOGIKA AMBIL DATA DARI DATABASE ANTREAN ===
         const modalRiwayat = document.getElementById('modal-riwayat');
         const navRiwayatBtn = document.getElementById('nav-riwayat');
         const closeModalBtn = document.getElementById('close-modal-btn');
@@ -227,32 +227,23 @@
             modalRiwayat.classList.remove('hidden');
             modalTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400">Memuat riwayat...</td></tr>`;
             
+            // 💡 TIPS PENTING: Jika di backend kamu alamat URL mengambil data antrean bukan /api/antrean,
+            // Silakan sesuaikan teks URL di bawah ini (Misal: '/api/antrean/all' atau '/api/antrean/list')
             fetch('https://antree-production.up.railway.app/api/antrean')
             .then(res => {
                 if (!res.ok) {
-                    throw new Error(`HTTP Error! Status: ${res.status}`);
+                    throw new Error(`Endpoint /api/antrean merespon error HTTP ${res.status}`);
                 }
                 return res.json();
             })
             .then(data => {
-                // PENANGANAN SAKTI: Mengekstrak array dari berbagai jenis struktur response API
+                // Ekstraksi array data pendaftaran secara aman
                 let dataArray = [];
-                if (Array.isArray(data)) {
-                    dataArray = data;
-                } else if (data && Array.isArray(data.data)) {
-                    dataArray = data.data;
-                } else if (data && Array.isArray(data.content)) {
-                    dataArray = data.content;
-                } else if (data && typeof data === 'object') {
-                    for (let key in data) {
-                        if (Array.isArray(data[key])) {
-                            dataArray = data[key];
-                            break;
-                        }
-                    }
-                }
+                if (Array.isArray(data)) dataArray = data;
+                else if (data && Array.isArray(data.data)) dataArray = data.data;
+                else if (data && Array.isArray(data.content)) dataArray = data.content;
 
-                // Filter berdasarkan nama pasien aktif (Case Insensitive & Bersih Space)
+                // Saring riwayat kunjungan agar hanya memunculkan milik user aktif (Contoh: "nia")
                 const filtered = dataArray.filter(item => 
                     item && item.namaPasien && 
                     item.namaPasien.toLowerCase().trim() === activePatient.name.toLowerCase().trim()
@@ -263,7 +254,7 @@
                     return;
                 }
 
-                // Urutkan berdasarkan ID pendaftaran terbaru
+                // Urutkan dari data pendaftaran antrean paling baru
                 filtered.sort((a, b) => (b.id || 0) - (a.id || 0));
 
                 modalTableBody.innerHTML = '';
@@ -280,12 +271,11 @@
             })
             .catch(err => {
                 console.error(err);
-                // Menampilkan alasan error teknis spesifik langsung di bawah modal text red
                 modalTableBody.innerHTML = `
                     <tr>
-                        <td colspan="3" class="p-4 text-center text-red-500 font-medium">
-                            Gagal memuat data database.<br>
-                            <span class="text-[10px] text-gray-400 font-normal">Detail: ${err.message}</span>
+                        <td colspan="3" class="p-4 text-center text-red-500 font-medium text-xs">
+                            Gagal terhubung ke database antrean.<br>
+                            <span class="text-[10px] text-gray-400 font-normal">Pesan: ${err.message}</span>
                         </td>
                     </tr>`;
             });
