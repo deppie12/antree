@@ -252,58 +252,82 @@
             });
         });
 
-       // PASIEN / TEMPEL KODE BARU INI:
-    document.getElementById("download-btn").addEventListener("click", () => {
-    // 1. Membuat desain struk cetak tiket antrean yang rapi khusus untuk tampilan PDF
-        const element = document.createElement("div");
-            element.innerHTML = `
-            <div style="padding: 25px; font-family: 'Arial', sans-serif; max-width: 360px; margin: auto; border: 2px dashed #004482; text-align: center; background-color: #ffffff; border-radius: 8px;">
-            <h2 style="color: #004482; margin: 0 0 2px 0; font-size: 22px; font-weight: bold; letter-spacing: 1px;">ANTREE</h2>
-            <p style="font-size: 11px; color: #666; margin: 0 0 15px 0;">Antrean Cerdas Rumah Sakit</p>
+      // GANTI KODE TOMBOL DOWNLOAD ANDA DENGAN KODE BERIKUT:
+document.getElementById("download-btn").addEventListener("click", () => {
+    // 1. Proteksi data: Ambil teks asli dari elemen dashboard Anda (dengan fallback jika kosong)
+    const noAntrean = document.querySelector(".queue-number") ? document.querySelector(".queue-number").innerText : "A-001";
+    const namaPoli = document.querySelector("#poli-name") ? document.querySelector("#poli-name").innerText : "Poliklinik";
+    const namaPasien = (typeof activePatient !== 'undefined' && activePatient && activePatient.name) ? activePatient.name : "Pasien";
+
+    // 2. Buat elemen kontainer khusus PDF
+    const element = document.createElement("div");
+    
+    // PENTING: Sembunyikan elemen ini jauh di luar layar agar tidak merusak visual dashboard Anda
+    element.style.position = "absolute";
+    element.style.left = "-9999px"; 
+    element.style.top = "0";
+    element.style.width = "400px"; // Ukuran lebar dikunci agar struk proporsional
+    element.style.background = "#ffffff";
+
+    // Desain struk e-tiket komplit yang rapi & kokoh
+    element.innerHTML = `
+        <div style="border: 2px solid #004482; border-radius: 12px; padding: 25px; font-family: 'Arial', sans-serif; background: #ffffff; text-align: center; box-sizing: border-box;">
             
-            <div style="border-top: 1px dashed #bbb; margin: 10px 0;"></div>
+            <h2 style="color: #004482; margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 1px;">ANTREE</h2>
+            <p style="font-size: 11px; color: #666666; margin: 4px 0 15px 0;">Antrean Cerdas Rumah Sakit</p>
             
-            <p style="font-size: 13px; color: #333; margin: 10px 0 0 0;">NOMOR ANTREAN ANDA:</p>
-            <h1 style="font-size: 46px; color: #004482; margin: 5px 0; font-weight: 800;">${document.querySelector(".queue-number").innerText}</h1>
+            <div style="border-top: 2px dashed #cbd5e1; margin: 15px 0;"></div>
             
-            <div style="border-top: 1px dashed #bbb; margin: 15px 0;"></div>
+            <p style="font-size: 13px; color: #64748b; margin: 0; text-transform: uppercase; font-weight: bold;">Nomor Antrean Anda</p>
+            <h1 style="font-size: 60px; color: #004482; margin: 10px 0; font-weight: 900; line-height: 1;">${noAntrean}</h1>
             
-            <table style="width: 100%; font-size: 13px; border-collapse: collapse; text-align: left; margin-bottom: 15px; color: #333;">
-                <tr>
-                    <td style="padding: 5px 0; color: #666; width: 40%;">Nama Pasien</td>
-                    <td style="padding: 5px 0; font-weight: bold;">: ${activePatient.name}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 5px 0; color: #666;">Poliklinik</td>
-                    <td style="padding: 5px 0; font-weight: bold;">: ${document.querySelector("#poli-name").innerText}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 5px 0; color: #666;">Waktu Cetak</td>
-                    <td style="padding: 5px 0;">: ${new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })} WIB</td>
-                </tr>
-            </table>
-            
-            <div style="border-top: 1px dashed #bbb; margin: 10px 0;"></div>
-            
-             <p style="font-size: 10px; color: #777; margin: 10px 0 0 0; line-height: 1.4;">
-                *Simpan PDF ini dan tunjukkan kepada petugas loket saat nomor Anda dipanggil.<br>
-                <strong>Semoga Lekas Sembuh</strong>
-             </p>
+            <div style="display: inline-block; background: #e0f2fe; color: #0369a1; font-size: 14px; font-weight: bold; padding: 6px 16px; border-radius: 20px; margin: 10px 0 20px 0;">
+                ${namaPoli}
             </div>
+            
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; text-align: left; font-size: 13px; color: #334155;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="height: 25px;">
+                        <td style="color: #64748b; width: 35%;">Nama Pasien</td>
+                        <td style="font-weight: bold; color: #0f172a;">: ${namaPasien}</td>
+                    </tr>
+                    <tr style="height: 25px;">
+                        <td style="color: #64748b;">Tanggal</td>
+                        <td style="color: #0f172a;">: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</td>
+                    </tr>
+                    <tr style="height: 25px;">
+                        <td style="color: #64748b;">Waktu Cetak</td>
+                        <td style="color: #0f172a;">: ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div style="border-top: 2px dashed #cbd5e1; margin: 20px 0;"></div>
+            
+            <p style="font-size: 11px; color: #64748b; margin: 0; line-height: 1.5;">
+                Harap simpan file PDF ini dan tunjukkan kepada petugas loket saat nomor Anda dipanggil.<br>
+                <strong style="color: #004482; display: block; margin-top: 10px; font-size: 13px;">Semoga Lekas Sembuh</strong>
+            </p>
+        </div>
     `;
-    // 2. Pengaturan ukuran dokumen PDF (Dibuat seukuran kertas A5/Struk biar pas dan cantik)
-        const opt = {
-            margin:       10,
-            filename:     `Tiket-Antrean-${document.querySelector(".queue-number").innerText}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a5', orientation: 'portrait' }
-         };
 
-    // 3. Eksekusi konversi ke PDF dan langsung otomatis download
-         html2pdf().set(opt).from(element).save();
+    // 3. MASUKKAN KE DOM (Wajib agar browser bisa menghitung layout gaya & teksnya secara nyata)
+    document.body.appendChild(element);
+
+    // 4. Pengaturan kertas PDF (Menggunakan A5 portrait agar pas dengan ukuran struk)
+    const opt = {
+        margin:       10,
+        filename:     `Tiket-Antrean-${noAntrean}.pdf`,
+        image:        { type: 'jpeg', quality: 1.0 },
+        html2canvas:  { scale: 3, useCORS: true, logging: false }, // Skala ditinggikan ke 3 agar tulisan tajam anti buram
+        jsPDF:        { unit: 'mm', format: 'a5', orientation: 'portrait' }
+    };
+
+    // 5. Jalankan konversi PDF, setelah sukses terunduh, hapus kembali elemen bayangan tadi dari DOM
+    html2pdf().set(opt).from(element).save().then(() => {
+        document.body.removeChild(element);
     });
-
+});
         document.getElementById("share-btn").addEventListener("click", async () => {
             const shareText = `Antrean ${document.querySelector(".queue-number").innerText}\nPasien: ${activePatient.name}`;
             if (navigator.share) {
