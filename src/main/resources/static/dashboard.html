@@ -4,33 +4,35 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>ANTREE - Pendaftaran & Antrean</title>
+    
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <script id="tailwind-config">
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-                "primary": "#004482",
-                "on-primary": "#ffffff",
-                "surface": "#f9f9ff",
-                "outline-variant": "#c1c6d3",
-                "primary-fixed": "#d5e3ff",
-                "surface-container-low": "#f0f3ff",
-                "primary-container": "#005cab",
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#004482",
+                        "on-primary": "#ffffff",
+                        "surface": "#f9f9ff",
+                        "outline-variant": "#c1c6d3",
+                        "primary-fixed": "#d5e3ff",
+                        "surface-container-low": "#f0f3ff",
+                        "primary-container": "#005cab",
+                    }
+                }
             }
-          }
         }
-      }
     </script>
+    
     <style>
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         body { background-color: #f9f9ff; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="font-sans text-slate-900">
 
@@ -41,6 +43,10 @@
                 <a class="text-primary border-b-2 border-primary pb-1" href="#">Layanan</a>
                 <a class="text-gray-500 hover:text-primary cursor-pointer" id="nav-riwayat">Riwayat Kunjungan</a>
                 <a class="text-gray-500 hover:text-primary" href="#">Bantuan</a>
+                
+                <button id="btn-logout" class="flex items-center gap-1.5 text-red-500 hover:text-red-700 font-semibold cursor-pointer transition-colors">
+                    <span class="material-symbols-outlined text-lg">logout</span> Logout
+                </button>
             </div>
         </div>
     </nav>
@@ -148,7 +154,6 @@
         </div>
     </main>
 
-    <!-- POP-UP MODAL KECIL UNTUK RIWAYAT KUNJUNGAN -->
     <div id="modal-riwayat" class="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative">
             <button id="close-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
@@ -170,8 +175,7 @@
                         </tr>
                     </thead>
                     <tbody id="modal-table-body" class="divide-y divide-gray-100 text-gray-700">
-                        <!-- Data dimasukkan via Javascript -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -217,6 +221,17 @@
         window.addEventListener("DOMContentLoaded", eksekusiGantiNama);
         window.addEventListener("load", eksekusiGantiNama);
 
+        // === LOGIKA LOGOUT USER ===
+        document.getElementById('btn-logout').addEventListener('click', function() {
+            const konfirmasi = confirm("Apakah Anda yakin ingin keluar dari aplikasi?");
+            if (konfirmasi) {
+                localStorage.removeItem('user_aktif');
+                localStorage.removeItem('user');
+                // Alihkan ke halaman login
+                window.location.href = 'login.html'; 
+            }
+        });
+
         // === LOGIKA AMBIL DATA DARI DATABASE ANTREAN ===
         const modalRiwayat = document.getElementById('modal-riwayat');
         const navRiwayatBtn = document.getElementById('nav-riwayat');
@@ -227,23 +242,17 @@
             modalRiwayat.classList.remove('hidden');
             modalTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400">Memuat riwayat...</td></tr>`;
             
-            // 💡 TIPS PENTING: Jika di backend kamu alamat URL mengambil data antrean bukan /api/antrean,
-            // Silakan sesuaikan teks URL di bawah ini (Misal: '/api/antrean/all' atau '/api/antrean/list')
             fetch('https://antree-production.up.railway.app/api/antrean')
             .then(res => {
-                if (!res.ok) {
-                    throw new Error(`Endpoint /api/antrean merespon error HTTP ${res.status}`);
-                }
+                if (!res.ok) throw new Error(`Endpoint /api/antrean merespon error HTTP ${res.status}`);
                 return res.json();
             })
             .then(data => {
-                // Ekstraksi array data pendaftaran secara aman
                 let dataArray = [];
                 if (Array.isArray(data)) dataArray = data;
                 else if (data && Array.isArray(data.data)) dataArray = data.data;
                 else if (data && Array.isArray(data.content)) dataArray = data.content;
 
-                // Saring riwayat kunjungan agar hanya memunculkan milik user aktif (Contoh: "nia")
                 const filtered = dataArray.filter(item => 
                     item && item.namaPasien && 
                     item.namaPasien.toLowerCase().trim() === activePatient.name.toLowerCase().trim()
@@ -254,7 +263,6 @@
                     return;
                 }
 
-                // Urutkan dari data pendaftaran antrean paling baru
                 filtered.sort((a, b) => (b.id || 0) - (a.id || 0));
 
                 modalTableBody.innerHTML = '';
