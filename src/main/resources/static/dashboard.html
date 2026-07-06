@@ -9,31 +9,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet"/>
 
     <script id="tailwind-config">
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-                "primary": "#004482",
-                "on-primary": "#ffffff",
-                "surface": "#f9f9ff",
-                "outline-variant": "#c1c6d3",
-                "primary-fixed": "#d5e3ff",
-                "surface-container-low": "#f0f3ff",
-                "primary-container": "#005cab",
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#004482",
+                        "on-primary": "#ffffff",
+                        "surface": "#f9f9ff",
+                        "outline-variant": "#c1c6d3",
+                        "primary-fixed": "#d5e3ff",
+                        "surface-container-low": "#f0f3ff",
+                        "primary-container": "#005cab",
+                    }
+                }
             }
-          }
         }
-      }
     </script>
     <style>
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         body { background-color: #f9f9ff; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
     </style>
-    <!-- Tempelkan script library PDF di sini -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
-</head>
+
 <body class="font-sans text-slate-900">
 
     <nav class="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
@@ -151,24 +150,21 @@
     </main>
 
     <script>
-        // --- PERUBAHAN: Mengambil data user yang disimpan dari localStorage ---
         const sessionUser = localStorage.getItem('user_aktif');
         let activePatient = {
-            name: "Budi Santoso", // Default fallback jika session kosong
+            name: "Budi Santoso",
             rm: "12-34-56"
         };
 
         if (sessionUser) {
             const parsedUser = JSON.parse(sessionUser);
-            // Menyesuaikan properti 'nama' atau 'name' dari data pendaftaran
             if (parsedUser.nama) {
                 activePatient.name = parsedUser.nama;
             } else if (parsedUser.name) {
                 activePatient.name = parsedUser.name;
             }
-        }
+        };
 
-        // Jalankan saat dokumen selesai dimuat untuk mengubah teks "Budi Santoso" di HTML profil aktif
         document.addEventListener("DOMContentLoaded", function() {
             const profileNameElement = document.getElementById("form-patient-name");
             if (profileNameElement) {
@@ -196,9 +192,8 @@
             const poli = document.getElementById('input-poli').value;
             const doctor = document.getElementById('input-doctor').value;
 
-            // Membangun objek data sesuai Antrean.java menggunakan nama dinamis
             const dataUntukSimpan = {
-                namaPasien: activePatient.name, // <-- Sekarang otomatis menggunakan nama user registrasi
+                namaPasien: activePatient.name,
                 poli: poli,
                 dokter: doctor,
                 tanggal: selectedDate
@@ -207,22 +202,18 @@
             const btn = document.getElementById('btn-daftar');
             btn.innerHTML = `<span class="animate-spin material-symbols-outlined">sync</span> Memproses...`;
 
-            // MENGIRIM DATA KE DATABASE H2 MELALUI CONTROLLER
             fetch('https://antree-production.up.railway.app/api/antrean/daftar', { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dataUntukSimpan)
             })
             .then(response => {
-                // PERUBAHAN PENTING: Tambahkan pengecekan status
                 if (!response.ok) {
                     throw new Error('Server error dengan status: ' + response.status);
                 }
                 return response.json();
             })
-            
             .then(data => {
-                // Update UI menggunakan ID yang dihasilkan database secara otomatis
                 document.querySelector(".queue-number").innerText = "A-00" + data.id;
                 document.querySelector("#patient-name").innerText = data.namaPasien;
                 document.querySelector("#rm-number").innerText = activePatient.rm;
@@ -234,7 +225,7 @@
                 const ticketCard = document.getElementById('ticket-card');
                 ticketCard.classList.remove('opacity-50', 'scale-95');
                 ticketCard.classList.add('scale-100');
-                
+            
                 const qrImg = document.getElementById('qr-image');
                 qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ANTREE-${data.id}-${data.namaPasien}`;
                 qrImg.classList.remove('opacity-30');
@@ -252,67 +243,44 @@
             });
         });
 
-     
         document.getElementById("download-btn").addEventListener("click", () => {
-            // 1. Ambil data dengan aman
-            const noAntrean = document.querySelector(".queue-number") ? document.querySelector(".queue-number").innerText : "A-001";
-            const namaPoli = document.querySelector("#poli-name") ? document.querySelector("#poli-name").innerText : "Poliklinik";
-            const namaPasien = (typeof activePatient !== 'undefined' && activePatient && activePatient.name) ? activePatient.name : "Pasien";
+            const noAntrean = document.querySelector(".queue-number").innerText;
+            const namaPasien = document.querySelector("#patient-name").innerText;
+            const poli = document.querySelector("#poli-name").innerText;
+            const dokter = document.querySelector("#doctor-name").innerText;
+            const tgl = document.querySelector("#visit-date").innerText;
 
-            // 2. Buat kanvas cetak murni di dalam memori (Tidak perlu ditempel ke layar)
-            const printArea = document.createElement("div");
-    
-            // Desain diatur dengan ukuran FIX: Lebar 500px dan Tinggi 650px. 
-            printArea.innerHTML = `
-                <div style="width: 500px; height: 650px; padding: 40px; box-sizing: border-box; background-color: #ffffff; font-family: Arial, sans-serif;">
-                    <div style="border: 3px solid #004482; border-radius: 20px; padding: 30px; height: 100%; box-sizing: border-box; text-align: center;">
-                
-                        <h1 style="color: #004482; font-size: 32px; margin: 0; font-weight: bold; letter-spacing: 2px;">ANTREE</h1>
-                        <p style="color: #64748b; font-size: 14px; margin: 5px 0 20px 0;">Antrean Cerdas Rumah Sakit</p>
-                
-                        <div style="border-top: 2px dashed #cbd5e1; margin: 20px 0;"></div>
-                
-                        <p style="color: #64748b; font-size: 14px; margin: 0; font-weight: bold; text-transform: uppercase;">Nomor Antrean Anda</p>
-                        <h1 style="color: #004482; font-size: 80px; margin: 15px 0; font-weight: 900; line-height: 1;">${noAntrean}</h1>
-                        <div style="background-color: #e0f2fe; color: #0369a1; padding: 8px 20px; border-radius: 20px; display: inline-block; font-size: 16px; font-weight: bold; margin-bottom: 25px;">
-                            ${namaPoli}
-                        </div>
-                
-                        <div style="border: 1px solid #e2e8f0; background-color: #f8fafc; border-radius: 12px; padding: 20px; text-align: left; margin-bottom: 25px;">
-                            <div style="margin-bottom: 12px;">
-                                <span style="color: #64748b; font-size: 15px; display: inline-block; width: 130px;">Nama Pasien</span>
-                                <span style="color: #0f172a; font-size: 15px; font-weight: bold;">: ${namaPasien}</span>
-                            </div>
-                            <div style="margin-bottom: 12px;">
-                                <span style="color: #64748b; font-size: 15px; display: inline-block; width: 130px;">Tanggal</span>
-                                <span style="color: #0f172a; font-size: 15px; font-weight: bold;">: ${new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                            </div>
-                            <div>
-                                <span style="color: #64748b; font-size: 15px; display: inline-block; width: 130px;">Waktu Cetak</span>
-                                <span style="color: #0f172a; font-size: 15px; font-weight: bold;">: ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
-                            </div>
-                        </div>
-                
-                        <div style="border-top: 2px dashed #cbd5e1; margin: 20px 0;">
-                
-                            <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0;">Harap simpan PDF ini dan tunjukkan kepada petugas loket.</p>
-                            <p style="color: #004482; font-size: 16px; font-weight: bold; margin: 15px 0 0 0;">Semoga Lekas Sembuh</p>
-                        </div>
-                    </div>
+            const container = document.createElement("div");
+            container.style.width = "400px";
+            container.style.padding = "20px";
+            container.style.fontFamily = "Arial, sans-serif";
+            container.style.backgroundColor = "#ffffff";
+
+            container.innerHTML = `
+                <div style="border: 2px solid #004482; padding: 20px; border-radius: 10px;">
+                    <h2 style="text-align: center; color: #004482;">ANTREE</h2>
+                    <hr style="border: 1px dashed #ccc;">
+                    <p style="text-align: center; font-size: 14px;">Nomor Antrean Anda</p>
+                    <h1 style="text-align: center; font-size: 40px; color: #004482; margin: 10px 0;">${noAntrean}</h1>
+                    <table style="width: 100%; font-size: 12px; margin-top: 20px; border-collapse: collapse;">
+                        <tr><td style="padding: 5px; color: #666;">Pasien</td><td style="font-weight:bold;">: ${namaPasien}</td></tr>
+                        <tr><td style="padding: 5px; color: #666;">Poli</td><td style="font-weight:bold;">: ${poli}</td></tr>
+                        <tr><td style="padding: 5px; color: #666;">Dokter</td><td style="font-weight:bold;">: ${dokter}</td></tr>
+                        <tr><td style="padding: 5px; color: #666;">Tanggal</td><td style="font-weight:bold;">: ${tgl}</td></tr>
+                    </table>
+                    <p style="text-align: center; margin-top: 20px; font-size: 10px; color: #999;">Tunjukkan tiket ini di loket</p>
                 </div>
             `;
 
-            //3. KUNCI RAHASIA: Memaksa PDF dibuat persis 500x650 pixel (Menghilangkan masalah format kertas / gepeng)
             const opt = {
-                margin:       0,
-                filename:     `Tiket-Antrean-${noAntrean}.pdf`,
-                image:        { type: 'jpeg', quality: 1.0 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'px', format: [500, 650], orientation: 'portrait' } 
+                margin: 5,
+                filename: `Tiket-${noAntrean}.pdf`,
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 2, logging: false },
+                jsPDF: { unit: 'mm', format: 'a6', orientation: 'portrait' }
             };
 
-            // 4. Eksekusi
-            html2pdf().set(opt).from(printArea).save();
+            html2pdf().set(opt).from(container).save();
         });
     </script>
 </body>
