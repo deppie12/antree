@@ -149,33 +149,37 @@
     </main>
 
     <script>
-       const sessionUser = localStorage.getItem('user_aktif');
-       let activePatient = {
-        name: "Budi Santoso", 
-        rm: "12-34-56"
-    };
+       // 1. Ambil data dari localStorage
+        const sessionUser = localStorage.getItem('user_aktif');
+        let activePatient = {
+            name: "Budi Santoso", // Nama default kalau tidak ada yang login
+            rm: "12-34-56"
+        };
 
-if (sessionUser) {
-    const parsedUser = JSON.parse(sessionUser);
-    
-    if (parsedUser.nama) {
-        activePatient.name = parsedUser.nama;
-    } else if (parsedUser.name) {
-        activePatient.name = parsedUser.name;
-    } else if (parsedUser.email) {
-        const frontEmail = parsedUser.email.split('@')[0];
-        activePatient.name = frontEmail.charAt(0).toUpperCase() + frontEmail.slice(1);
-    }
-}
+        // 2. Jika data user ditemukan, langsung ganti namanya saat itu juga!
+        if (sessionUser) {
+            const parsedUser = JSON.parse(sessionUser);
+            
+            if (parsedUser.nama) {
+                activePatient.name = parsedUser.nama;
+            } else if (parsedUser.name) {
+                activePatient.name = parsedUser.name;
+            } else if (parsedUser.email) {
+                // Potong email (mila@gmail.com -> Mila)
+                const frontEmail = parsedUser.email.split('@')[0];
+                activePatient.name = frontEmail.charAt(0).toUpperCase() + frontEmail.slice(1);
+            }
+        }
 
-// Ini fungsi paksa agar teks langsung berubah tanpa nunggu loading lama
-setTimeout(() => {
-    const profileNameElement = document.getElementById("form-patient-name");
-    if (profileNameElement) {
-        profileNameElement.innerText = activePatient.name;
-        console.log("Nama berhasil diubah menjadi:", activePatient.name);
-    }
-}, 100);
+        // 3. Paksa ganti teks di HTML secara langsung tanpa menunggu DOMContentLoaded
+        // Kode ini ditaruh di luar fungsi apa pun agar langsung dieksekusi browser
+        setTimeout(() => {
+            const profileNameElement = document.getElementById("form-patient-name");
+            if (profileNameElement) {
+                profileNameElement.innerText = activePatient.name;
+                console.log("Nama berhasil diubah secara paksa menjadi:", activePatient.name);
+            }
+        }, 100); // diberi jeda 100 milidetik agar HTML selesai merender dulu
         let selectedDate = "14 Okt 2024";
 
         document.querySelectorAll('.date-btn').forEach(btn => {
