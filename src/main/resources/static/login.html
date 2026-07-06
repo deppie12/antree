@@ -171,7 +171,6 @@
         function togglePassword() {
             const passwordInput = document.getElementById("password");
             const eyeIcon = document.getElementById("eyeIcon");
-        
             if (passwordInput.type === "password") {
                 passwordInput.type = "text";
                 eyeIcon.textContent = "visibility_off";
@@ -193,19 +192,18 @@
             btn.innerHTML = 'Mengecek...';
             btn.disabled = true;
 
-            // 1. Coba login sebagai Admin terlebih dahulu
+            // 1. Coba login Admin
             fetch('https://antree-production.up.railway.app/api/admin/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dataLogin)
             })
             .then(response => {
-                // Jika statusnya 200 OK, berarti dia Admin terdaftar
                 if (response.ok) {
                     return response.json().then(data => ({ role: 'admin', data }));
                 }
                 
-                // 2. Jika gagal di admin, coba lempar ke API User biasa
+                // 2. Jika gagal di admin, coba login ke API User biasa
                 return fetch('https://antree-production.up.railway.app/api/user/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -222,6 +220,7 @@
                     window.location.href = 'admin.html'; 
                 } else {
                     alert('Login User Berhasil!');
+                    // Menyimpan session user agar bisa dibaca di dashboard
                     localStorage.setItem('user_aktif', JSON.stringify(result.data));
                     window.location.href = 'dashboard.html'; 
                 }
