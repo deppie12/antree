@@ -149,36 +149,33 @@
     </main>
 
     <script>
-        // Mengambil data user yang disimpan dari localStorage
-        const sessionUser = localStorage.getItem('user_aktif');
-        let activePatient = {
-            name: "Budi Santoso", // Fallback default
-            rm: "12-34-56"
-        };
+       const sessionUser = localStorage.getItem('user_aktif');
+       let activePatient = {
+        name: "Budi Santoso", 
+        rm: "12-34-56"
+    };
 
-        if (sessionUser) {
-            const parsedUser = JSON.parse(sessionUser);
-            
-            // Logika pengecekan nama dinamis yang super aman
-            if (parsedUser.nama) {
-                activePatient.name = parsedUser.nama;
-            } else if (parsedUser.name) {
-                activePatient.name = parsedUser.name;
-            } else if (parsedUser.email) {
-                // Jika database tidak punya kolom nama, potong emailnya (contoh: mila@gmail.com -> Mila)
-                const frontEmail = parsedUser.email.split('@')[0];
-                activePatient.name = frontEmail.charAt(0).toUpperCase() + frontEmail.slice(1);
-            }
-        }
+if (sessionUser) {
+    const parsedUser = JSON.parse(sessionUser);
+    
+    if (parsedUser.nama) {
+        activePatient.name = parsedUser.nama;
+    } else if (parsedUser.name) {
+        activePatient.name = parsedUser.name;
+    } else if (parsedUser.email) {
+        const frontEmail = parsedUser.email.split('@')[0];
+        activePatient.name = frontEmail.charAt(0).toUpperCase() + frontEmail.slice(1);
+    }
+}
 
-        // Jalankan perubahan nama profil sesaat setelah halaman termuat
-        document.addEventListener("DOMContentLoaded", function() {
-            const profileNameElement = document.getElementById("form-patient-name");
-            if (profileNameElement) {
-                profileNameElement.innerText = activePatient.name;
-            }
-        });
-
+// Ini fungsi paksa agar teks langsung berubah tanpa nunggu loading lama
+setTimeout(() => {
+    const profileNameElement = document.getElementById("form-patient-name");
+    if (profileNameElement) {
+        profileNameElement.innerText = activePatient.name;
+        console.log("Nama berhasil diubah menjadi:", activePatient.name);
+    }
+}, 100);
         let selectedDate = "14 Okt 2024";
 
         document.querySelectorAll('.date-btn').forEach(btn => {
