@@ -2,7 +2,7 @@
 
 Aplikasi web untuk mengelola pendaftaran akun pasien, login, pendaftaran antrean poli/dokter, riwayat kunjungan, serta panel admin untuk mengelola data pendaftar. Dibangun dengan Java Spring Boot di sisi backend dan HTML + Tailwind (CDN) + vanilla JavaScript di sisi frontend.
 
-> Proyek ini merupakan tugas mata kuliah Pemrograman Berorientasi Objek (PBO). Folder utama yang aktif dikembangkan adalah `antrepbo/antrepbo2`; folder lain di repo (`antree/`, `antree/antre/antre`) adalah iterasi awal/prototipe yang tidak lagi digunakan.
+> Proyek ini merupakan tugas mata kuliah Pemrograman Berorientasi Objek (PBO). Folder utama yang aktif dikembangkan adalah `antrepbo/antrepbo2`
 
 ## Deskripsi Project
 
