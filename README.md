@@ -1,192 +1,278 @@
-# ANTREE-PBO
+# ANTREE — Sistem Antrean Rumah Sakit
 
-Repository tugas mata kuliah **Pemrograman Berorientasi Objek (PBO)** — Sistem Antrean Rumah Sakit berbasis Java Spring Boot. Repo ini berisi beberapa folder project yang merupakan iterasi/versi dari sistem yang sama, dari scaffold paling awal sampai versi paling lengkap.
+Aplikasi web untuk mengelola pendaftaran akun pasien, login, pendaftaran antrean poli/dokter, riwayat kunjungan, serta panel admin untuk mengelola data pendaftar. Dibangun dengan Java Spring Boot di sisi backend dan HTML + Tailwind (CDN) + vanilla JavaScript di sisi frontend.
 
-## Struktur Folder
+> Proyek ini merupakan tugas mata kuliah Pemrograman Berorientasi Objek (PBO). Folder utama yang aktif dikembangkan adalah `antrepbo/antrepbo2`; folder lain di repo (`antree/`, `antree/antre/antre`) adalah iterasi awal/prototipe yang tidak lagi digunakan.
 
-```
-antree-pbo/
-├── antree/                        # Iterasi awal
-│   ├── src/
-│   │   ├── App.java               # Program "Hello, World!" (scaffold Java biasa)
-│   │   └── user.java              # Kelas kosong (placeholder)
-│   ├── bin/                       # Hasil kompilasi .class dari src/
-│   └── antre/antre/                # Sub-project Spring Boot versi awal
-│       ├── src/main/java/com/antre/antre/
-│       │   ├── AntreApplication.java
-│       │   ├── TestController.java
-│       │   ├── controller/AntreanController.java
-│       │   ├── model/              # Admin, Antrean, Dokter, Laporan, Pembayaran, Pendaftaran, Poli, User
-│       │   └── repository/AntreanRepository.java
-│       ├── src/main/resources/application.properties
-│       ├── pom.xml, mvnw, mvnw.cmd
-│       └── target/                 # Hasil build Maven
-│
-└── antrepbo/
-    └── antrepbo2/                  # Project utama (versi paling lengkap)
-        ├── src/main/java/com/antrepbo/antrepbo2/
-        │   ├── Antrepbo2Application.java
-        │   ├── model/               # Admin, Antrean, User, pendaftaran
-        │   ├── repository/          # AdminRepository, AntreanRepository, PendaftaranRepository, UserRepository
-        │   ├── service/             # AdminService, AntreanService, PendaftaranService, UserService
-        │   └── controller/          # AntreanController, PendaftaranController, UserController, adminController
-        ├── src/main/resources/
-        │   ├── application.properties
-        │   └── static/              # login.html, pendaftaran.html, dashboard.html, admin.html, js/antrean.js
-        ├── data/                    # File database H2 (.mv.db, .trace.db)
-        ├── database.types.ts        # (kosong)
-        ├── pom.xml, mvnw, mvnw.cmd
-        └── target/                  # Hasil build Maven
-```
+## Deskripsi Project
 
-> Catatan: struktur di atas hanya mendeskripsikan isi ZIP apa adanya — tidak ada folder/file yang ditambahkan atau diubah.
+ANTREE adalah sistem antrean rumah sakit sederhana yang memungkinkan:
 
----
+- **Pasien** mendaftar akun, login, memilih poli/dokter/tanggal untuk mendapatkan nomor antrean, dan melihat riwayat kunjungan mereka.
+- **Admin** login melalui halaman yang sama dengan pasien (sistem mendeteksi otomatis role login), lalu mengelola (lihat, ubah, hapus) data pendaftar melalui panel admin.
 
-## Project Utama: `antrepbo/antrepbo2`
+Backend menyediakan REST API sederhana (tanpa autentikasi token/session — pengecekan password dilakukan langsung terhadap data di database), sedangkan frontend adalah halaman statis yang memanggil API tersebut lewat `fetch`.
 
-Aplikasi **Sistem Antrean Rumah Sakit** dengan nama tampilan **ANTREE**.
+## Preview
 
-### Tech Stack
-- Java 17, Spring Boot 3.3.5
-- Spring Web, Spring Data JPA
-- Thymeleaf
-- Database: H2 (runtime/lokal) & PostgreSQL Supabase (produksi, lewat `DB_PASSWORD`)
-- Lombok, Maven (`mvnw`)
-- Frontend: HTML statis (Tailwind via CDN) + vanilla JS, memanggil API lewat `fetch`
+Aplikasi terdiri dari 4 halaman utama:
 
-### Entity / Model
-| Model | Tabel | Field |
+| Halaman | File | Fungsi |
 |---|---|---|
-| `Admin` | `admin` | id, nama, email, password |
-| `User` | `USERS` | id, username, password |
-| `pendaftaran` | `pendaftaran` | id, nama, nik, whatsapp, email, sandi |
-| `Antrean` | `antrean` | id, namaPasien, poli, dokter, tanggal |
+| Login | `login.html` | Form masuk untuk admin & pasien dalam satu pintu |
+| Pendaftaran Akun | `pendaftaran.html` | Form pendaftaran akun pasien baru (nama, NIK, WhatsApp, email, sandi) |
+| Dashboard Pasien | `dashboard.html` | Daftar antrean baru (poli, dokter, tanggal) & lihat riwayat kunjungan |
+| Panel Admin | `admin.html` | Kelola (lihat/ubah/hapus) data pendaftar |
 
-### REST API Endpoint
-| Method | Endpoint | Controller → Service | Fungsi |
-|---|---|---|---|
-| POST | `/register` | `UserController` | Registrasi user manual (form-encoded), redirect ke `login.html` |
-| POST | `/api/user/login` | `UserController` | Login user: cari `User` by `username`, cek password manual |
-| GET | `/api/admin` | `adminController` | Ambil semua admin |
-| POST | `/api/admin` | `adminController` | Tambah admin baru |
-| PUT | `/api/admin/{id}` | `adminController` | Update data admin (nama, email, password) |
-| DELETE | `/api/admin/{id}` | `adminController` | Hapus admin |
-| POST | `/api/admin/login` | `adminController` | Login admin: cari `Admin` by email & password |
-| POST | `/api/daftar` | `PendaftaranController` → `PendaftaranService` | Simpan data pendaftaran **dan** otomatis buat akun di tabel `USERS` |
-| GET | `/api/daftar` | `PendaftaranController` | Ambil semua data pendaftaran |
-| PUT | `/api/daftar/{id}` | `PendaftaranController` | Update data pendaftaran |
-| DELETE | `/api/daftar/{id}` | `PendaftaranController` | Hapus data pendaftaran |
-| POST | `/api/antrean/daftar` | `AntreanController` | Simpan antrean baru |
-| GET | `/api/antrean` | `AntreanController` | Ambil semua data antrean (untuk riwayat kunjungan) |
+Tampilan menggunakan Tailwind CSS (via CDN) dengan tema warna biru (`primary #004482`) dan hijau (`secondary #006d37`), font Plus Jakarta Sans/Inter, serta ikon Material Symbols. Untuk melihat tampilan langsung, jalankan aplikasi secara lokal (lihat bagian [Menjalankan Secara Lokal](#menjalankan-secara-lokal)) lalu buka halaman-halaman di atas melalui browser.
 
-### Alur Aplikasi (End-to-End)
+## Cara Kerja
 
 **1. Pendaftaran akun baru** (`pendaftaran.html`)
 ```
-User isi form (nama, nik, whatsapp, email, sandi)
-   → validasi sandi vs konfirmasi sandi (di JS)
-   → POST /api/daftar
-   → PendaftaranService.simpanPendaftar()
-        ├─ simpan record lengkap ke tabel `pendaftaran`
-        └─ otomatis buat akun baru di tabel `USERS`
-              (email pendaftar → username, sandi pendaftar → password)
-   → data hasil disimpan ke localStorage['user_aktif']
-   → redirect ke dashboard.html
+Pasien isi form (nama, nik, whatsapp, email, sandi)
+  → validasi sandi vs konfirmasi sandi (di JS)
+  → POST /api/daftar
+  → PendaftaranService.simpanPendaftar()
+       ├─ simpan record lengkap ke tabel `pendaftaran`
+       └─ otomatis buat akun baru di tabel `USERS`
+             (email pendaftar → username, sandi pendaftar → password)
+  → redirect ke login.html / dashboard.html
 ```
 
 **2. Login** (`login.html`)
 ```
 User isi email & password
-   → POST /api/admin/login
-        ├─ jika berhasil (200)  → role = admin → simpan localStorage['admin_aktif'] → redirect admin.html
-        └─ jika gagal           → coba POST /api/user/login
-                                     ├─ jika berhasil (200) → role = user → simpan localStorage['user_aktif'] → redirect dashboard.html
-                                     └─ jika gagal juga     → alert "Email atau Password salah!"
+  → POST /api/admin/login
+       ├─ berhasil → role = admin → redirect admin.html
+       └─ gagal    → coba POST /api/user/login
+                        ├─ berhasil → role = user → redirect dashboard.html
+                        └─ gagal juga → tampilkan "Email atau Password salah!"
 ```
-> Jadi sistem login mencoba akun Admin dulu, baru fallback ke akun User biasa.
+Sistem mencoba login sebagai **admin** terlebih dahulu, baru fallback ke akun **pasien** biasa.
 
 **3. Dashboard pasien** (`dashboard.html`)
 ```
-Ambil data pasien aktif dari localStorage['user_aktif']
-   → jika tidak ada → redirect ke login.html
+Pilih poli, dokter, tanggal
+  → POST /api/antrean/daftar
+  → simpan ke tabel `antrean`
+  → tampilkan nomor antrean
 
-Daftar antrean baru:
-   pilih poli, dokter, tanggal
-   → POST /api/antrean/daftar { namaPasien, poli, dokter, tanggal }
-   → AntreanService.saveAntrean() → simpan ke tabel `antrean`
-   → tampilkan nomor antrean (format "A-00{id}")
-
-Lihat riwayat kunjungan:
-   → GET /api/antrean
-   → filter hasil di sisi client berdasarkan namaPasien == pasien aktif
-   → tampilkan sebagai tabel riwayat (tanggal, poli, nomor antrean)
+Riwayat kunjungan:
+  → GET /api/antrean
+  → filter di sisi client berdasarkan nama pasien aktif
+  → tampilkan sebagai tabel riwayat
 ```
 
 **4. Panel admin** (`admin.html`)
 ```
-Cek localStorage['admin_aktif'] → jika tidak ada, redirect ke login.html
-   → GET /api/daftar  → tampilkan semua data pendaftar
-   → PUT /api/daftar/{id}    → edit data pendaftar
-   → DELETE /api/daftar/{id} → hapus data pendaftar
+GET    /api/daftar       → tampilkan semua data pendaftar
+PUT    /api/daftar/{id}  → ubah data pendaftar
+DELETE /api/daftar/{id}  → hapus data pendaftar
 ```
 
-> Semua panggilan `fetch` di frontend statis mengarah ke base URL `https://antree-production.up.railway.app` (hasil deploy), bukan ke `localhost`, meskipun aplikasi juga bisa dijalankan lokal di port sesuai `application.properties`.
+### REST API
 
-### Query Khusus di Repository
-- `AdminRepository.findByEmailAndPassword(email, password)` — dipakai login admin.
-- `UserRepository.findByUsername(username)` — dipakai login user.
-- `AntreanRepository` & `PendaftaranRepository` — standar, hanya mewarisi `JpaRepository` tanpa query kustom.
+| Method | Endpoint | Controller | Fungsi |
+|---|---|---|---|
+| POST | `/register` | `UserController` | Registrasi user manual (form-encoded) |
+| POST | `/api/user/login` | `UserController` | Login pasien (cek `username` & `password`) |
+| GET | `/api/admin` | `adminController` | Ambil semua admin |
+| POST | `/api/admin` | `adminController` | Tambah admin baru |
+| PUT | `/api/admin/{id}` | `adminController` | Ubah data admin |
+| DELETE | `/api/admin/{id}` | `adminController` | Hapus admin |
+| POST | `/api/admin/login` | `adminController` | Login admin (cek `email` & `password`) |
+| POST | `/api/daftar` | `PendaftaranController` | Simpan pendaftar baru + auto-buat akun `USERS` |
+| GET | `/api/daftar` | `PendaftaranController` | Ambil semua data pendaftar |
+| PUT | `/api/daftar/{id}` | `PendaftaranController` | Ubah data pendaftar |
+| DELETE | `/api/daftar/{id}` | `PendaftaranController` | Hapus data pendaftar |
+| POST | `/api/antrean/daftar` | `AntreanController` | Simpan antrean baru |
+| GET | `/api/antrean` | `AntreanController` | Ambil semua data antrean (riwayat kunjungan) |
 
-### Halaman Frontend (`src/main/resources/static`)
-| File | Fungsi |
-|---|---|
-| `login.html` | Form login (coba sebagai admin dulu, fallback ke user) |
-| `pendaftaran.html` | Form pendaftaran akun pasien baru |
-| `dashboard.html` | Daftar antrean baru & lihat riwayat kunjungan pasien |
-| `admin.html` | Kelola (lihat/edit/hapus) data pendaftar |
-| `js/antrean.js` | Script JS pendukung fitur antrean |
+## Tech Stack
 
-### Konfigurasi Database
-Terhubung ke PostgreSQL (Supabase) lewat environment variable `DB_PASSWORD`, dengan H2 tersedia sebagai dependency runtime untuk pengujian lokal. Port server memakai environment variable `PORT` (fallback `9999`).
+**Backend**
+- Java 17
+- Spring Boot 3.3.5 (Spring Web, Spring Data JPA)
+- Thymeleaf
+- Lombok
+- Maven (dengan Maven Wrapper `mvnw`)
 
-### Cara Menjalankan
+**Database**
+- PostgreSQL (Supabase, untuk production) via env var `DB_PASSWORD`
+- H2 (dependency runtime, tersedia untuk pengujian/lokal)
+
+**Frontend**
+- HTML statis
+- Tailwind CSS (via CDN)
+- Vanilla JavaScript (`fetch` API)
+- Google Fonts (Plus Jakarta Sans, Inter) & Material Symbols
+
+**Deployment**
+- Railway (`https://antree-production.up.railway.app`)
+
+## Struktur Project
+
+```
+antrepbo2/
+├── src/
+│   ├── main/
+│   │   ├── java/com/antrepbo/antrepbo2/
+│   │   │   ├── Antrepbo2Application.java     # Entry point Spring Boot
+│   │   │   ├── controller/
+│   │   │   │   ├── AntreanController.java
+│   │   │   │   ├── PendaftaranController.java
+│   │   │   │   ├── UserController.java
+│   │   │   │   └── adminController.java
+│   │   │   ├── model/
+│   │   │   │   ├── Admin.java
+│   │   │   │   ├── Antrean.java
+│   │   │   │   ├── User.java
+│   │   │   │   └── pendaftaran.java
+│   │   │   ├── repository/
+│   │   │   │   ├── AdminRepository.java
+│   │   │   │   ├── AntreanRepository.java
+│   │   │   │   ├── PendaftaranRepository.java
+│   │   │   │   └── UserRepository.java
+│   │   │   └── service/
+│   │   │       ├── AdminService.java
+│   │   │       ├── AntreanService.java
+│   │   │       ├── PendaftaranService.java
+│   │   │       └── UserService.java
+│   │   └── resources/
+│   │       ├── application.properties        # Konfigurasi DB & port
+│   │       └── static/
+│   │           ├── login.html
+│   │           ├── pendaftaran.html
+│   │           ├── dashboard.html
+│   │           ├── admin.html
+│   │           └── js/antrean.js
+│   └── test/
+│       └── java/com/antrepbo/antrepbo2/
+│           └── Antrepbo2ApplicationTests.java
+├── data/                # File database H2 lokal (auto-generated, aman dihapus)
+├── pom.xml
+├── mvnw / mvnw.cmd       # Maven Wrapper
+└── README.md
+```
+
+## Prerequisites
+
+Sebelum menjalankan project ini, pastikan sudah terpasang:
+
+- **JDK 17** atau lebih baru
+- **Maven** (opsional — project sudah menyertakan Maven Wrapper `mvnw`/`mvnw.cmd`)
+- **Git** (untuk clone repository)
+- Akses ke database **PostgreSQL** (mis. Supabase) jika ingin menjalankan dengan konfigurasi production, **atau** cukup andalkan **H2** (in-memory/file) untuk uji coba lokal tanpa setup database eksternal
+- Browser modern (Chrome/Edge/Firefox) untuk membuka halaman frontend statis
+
+## Menjalankan Secara Lokal
+
+1. **Clone repository dan masuk ke folder project utama**
+   ```bash
+   git clone <url-repo-ini>
+   cd antree-pbo/antrepbo/antrepbo2
+   ```
+
+2. **Atur environment variable** (jika ingin memakai database PostgreSQL/Supabase seperti pada `application.properties` saat ini)
+   ```bash
+   export DB_PASSWORD=password_database_anda
+   ```
+   Jika tidak diset, aplikasi akan gagal terhubung ke datasource karena `application.properties` saat ini mengarah ke PostgreSQL Supabase. Untuk menjalankan sepenuhnya lokal tanpa database eksternal, ganti sementara konfigurasi datasource ke H2 (lihat bagian [Konfigurasi](#konfigurasi)).
+
+3. **Jalankan aplikasi dengan Maven Wrapper**
+   ```bash
+   ./mvnw spring-boot:run        # Linux/Mac
+   mvnw.cmd spring-boot:run      # Windows
+   ```
+
+4. **Akses aplikasi**
+   Aplikasi berjalan di `http://localhost:9999` (atau sesuai env var `PORT`). Buka halaman berikut di browser:
+   - `http://localhost:9999/login.html`
+   - `http://localhost:9999/pendaftaran.html`
+   - `http://localhost:9999/dashboard.html`
+   - `http://localhost:9999/admin.html`
+
+   > ⚠️ **Catatan penting:** file-file statis di `static/*.html` saat ini melakukan `fetch` ke URL production yang sudah di-hardcode (`https://antree-production.up.railway.app/...`), bukan ke origin lokal. Agar aplikasi benar-benar terhubung ke backend lokal saat dijalankan di komputer sendiri, ubah base URL tersebut menjadi `http://localhost:9999` (atau port lokal yang dipakai) di setiap file HTML/JS terkait sebelum menguji end-to-end secara lokal.
+
+## Konfigurasi
+
+Konfigurasi utama ada di `src/main/resources/application.properties`:
+
+```properties
+spring.application.name=antrepbo2
+server.port=${PORT:9999}
+
+# Database PostgreSQL (Supabase)
+spring.datasource.url=jdbc:postgresql://<host-pooler-supabase>:6543/postgres?prepareThreshold=0
+spring.datasource.username=postgres.<project-ref>
+spring.datasource.password=${DB_PASSWORD}
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.show-sql=true
+spring.jpa.open-in-view=false
+
+spring.datasource.hikari.maximum-pool-size=5
+spring.datasource.hikari.idle-timeout=30000
+spring.datasource.hikari.connection-timeout=20000
+```
+
+**Environment variable yang dibutuhkan:**
+
+| Variabel | Wajib | Keterangan |
+|---|---|---|
+| `DB_PASSWORD` | Ya (untuk mode PostgreSQL) | Password akun database PostgreSQL/Supabase |
+| `PORT` | Tidak | Port server, default `9999` |
+
+**Menjalankan dengan H2 (opsional, tanpa database eksternal):**
+Ganti bagian datasource di `application.properties` menjadi konfigurasi H2, misalnya:
+```properties
+spring.datasource.url=jdbc:h2:file:./data/antrepbodb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.jpa.hibernate.ddl-auto=update
+```
+File database H2 akan otomatis dibuat di folder `data/` saat aplikasi pertama kali dijalankan.
+
+## Deploy ke Production
+
+Aplikasi ini saat ini di-deploy ke **Railway** dan dapat diakses di `https://antree-production.up.railway.app`.
+
+Langkah umum deploy ke Railway (atau platform serupa yang mendukung Java/Maven):
+
+1. Buat project baru di Railway dan hubungkan ke repository ini (arahkan root directory ke `antrepbo/antrepbo2` jika platform mendukung monorepo).
+2. Set environment variable di dashboard Railway:
+   - `DB_PASSWORD` — password database PostgreSQL/Supabase
+   - `PORT` — biasanya otomatis di-inject oleh Railway, tidak perlu diset manual
+3. Railway akan mendeteksi `pom.xml` dan menjalankan build Maven (`./mvnw clean package`) secara otomatis, lalu menjalankan artifact hasil build (`spring-boot-maven-plugin` sudah dikonfigurasi di `pom.xml`).
+4. Setelah deploy berhasil, pastikan database Supabase (atau PostgreSQL lain yang dipakai) sudah dapat diakses dari luar (connection pooling/whitelist IP sesuai kebutuhan).
+5. Karena file statis (`login.html`, `dashboard.html`, dll.) memanggil API dengan base URL yang di-hardcode, pastikan URL tersebut sesuai dengan domain hasil deploy sebelum build/push ke production.
+
+## Menjalankan Test
+
+Project menyertakan test dasar Spring Boot (`Antrepbo2ApplicationTests`) yang memverifikasi Spring context dapat dimuat dengan benar.
+
 ```bash
-cd antrepbo/antrepbo2
-
-# Set password database (jika terhubung ke PostgreSQL/Supabase)
-export DB_PASSWORD=your_password
-
-# Jalankan aplikasi
-./mvnw spring-boot:run
+./mvnw test        # Linux/Mac
+mvnw.cmd test       # Windows
 ```
-Aplikasi dapat diakses melalui `http://localhost:9999` (atau port sesuai `PORT`). Namun perlu dicatat: file HTML statis di `static/` saat ini masih hardcode memanggil API ke `https://antree-production.up.railway.app`, bukan ke origin lokal — sesuaikan URL tersebut bila ingin menjalankan penuh secara lokal.
 
----
+> Saat ini hanya tersedia satu test (`contextLoads`) yang mengecek aplikasi dapat start tanpa error. Belum ada unit test untuk service/repository maupun test untuk endpoint REST API secara spesifik.
 
-## Project Pendukung
+## Batasan Desain
 
-### `antree/antre/antre`
-Sub-project Spring Boot versi lebih awal:
-- Spring Boot 3.2.5 (lihat `.mvn/wrapper/maven-wrapper.properties` & `pom.xml`), terhubung ke MySQL lokal (`jdbc:mysql://localhost:3306/antree_pbo`), port server `8081`.
-- Model lebih lengkap secara konsep OOP — ada pewarisan `Admin extends User` — namun sebagian besar model (`Dokter`, `Poli`, `Laporan`, `Pembayaran`, `Pendaftaran`) **belum** jadi `@Entity` (tidak terhubung ke database), method-nya masih dummy (contoh: `System.out.println("Dokter ditambahkan")`).
-- Endpoint yang tersedia:
-  - `GET /` (`TestController`) → mengembalikan teks "Mari Antree!!!"
-  - `GET /antrean` (`AntreanController`) → mengambil semua data antrean lewat `AntreanRepository`
-- ⚠️ Ada bug penulisan di `AntreanController`: anotasi salah ketik (bukan `@GetMapping`), sehingga endpoint kedua di controller tersebut **tidak akan bisa dikompilasi** sampai typo ini diperbaiki.
+Beberapa keterbatasan yang perlu diketahui pengguna/pengembang selanjutnya:
 
-### `antree/` (root)
-Folder scaffold Java biasa (bukan Maven/Spring):
-- `App.java` — program "Hello, World!"
-- `user.java` — kelas kosong
-- `bin/` — hasil kompilasi `.class`
+- **Password disimpan dalam plain text** — belum ada hashing (mis. BCrypt) pada `Admin`, `User`, maupun `pendaftaran`, dan proses login membandingkan password secara langsung (`equals`).
+- **Tidak ada session/token autentikasi** — status login (admin/pasien) hanya disimpan di `localStorage` browser, tanpa mekanisme JWT/session di server. Tidak ada proteksi endpoint berbasis role di backend.
+- **Base URL API di-hardcode ke domain production** di seluruh file statis, sehingga pengujian lokal end-to-end membutuhkan penyesuaian manual URL terlebih dahulu.
+- **CORS dibuka penuh** (`@CrossOrigin(origins = "*")`) di semua controller — cocok untuk kebutuhan development/tugas kuliah, tapi tidak disarankan untuk production sesungguhnya.
+- **Validasi input minim** — validasi (mis. format email, kekuatan password, duplikasi akun) sebagian besar hanya dilakukan di sisi client (JavaScript), bukan di backend.
+- **Riwayat kunjungan difilter di sisi client** — endpoint `GET /api/antrean` mengembalikan seluruh data antrean, lalu difilter berdasarkan nama pasien di JavaScript, bukan melalui query khusus di backend.
+- **Belum ada penanganan konflik jadwal** — sistem tidak mengecek apakah poli/dokter/tanggal yang sama sudah penuh sebelum menyimpan antrean baru.
 
-Tampaknya ini adalah project rintisan paling awal sebelum tim pindah ke Spring Boot.
+## Lisensi
 
----
-
-## Catatan Tambahan
-- File `database.types.ts` pada `antrepbo2` masih kosong.
-- Folder `data/` berisi file database H2 (`antredb.mv.db`, `antredb.trace.db`, `antrepbodb.mv.db`) hasil eksekusi aplikasi — bisa dihapus dan akan ter-generate ulang otomatis saat aplikasi dijalankan.
-- Folder `target/` pada masing-masing sub-project adalah hasil build Maven, bisa di-generate ulang dengan `./mvnw clean install`.
-- Folder `antrepbo/antrepbo2/.git/` menunjukkan sub-project ini pernah menjadi repository Git sendiri sebelum digabung ke repo `antree-pbo` ini.
+Project ini dibuat untuk keperluan tugas akademik (mata kuliah Pemrograman Berorientasi Objek) dan belum menyertakan lisensi open-source formal. Jika ingin menggunakan, memodifikasi, atau mendistribusikan ulang kode ini, silakan hubungi pemilik repository terlebih dahulu, atau tambahkan berkas `LICENSE` (mis. MIT License) sesuai kebutuhan Anda.
