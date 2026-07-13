@@ -2,7 +2,7 @@
 
 Repository tugas mata kuliah **Pemrograman Berorientasi Objek (PBO)** — Sistem Antrean Rumah Sakit berbasis Java Spring Boot. Repo ini berisi beberapa folder project yang merupakan iterasi/versi dari sistem yang sama, dari scaffold paling awal sampai versi paling lengkap.
 
-## Struktur Folder (sesuai isi ZIP, tidak diubah)
+## Struktur Folder
 
 ```
 antree-pbo/
